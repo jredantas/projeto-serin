@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY serin "http://www.unifor.br/serin.owl#" >
+    <!ENTITY location "http://www.unifor.br/veiculo.owl" >
+]>
+<rdf:RDF
+	xmlns:xsd="&xsd;"
+	xmlns:rdfs="&rdfs;"
+	xmlns:rdf="&rdf;"
+	xmlns:owl="&owl;"
+ 	xmlns:serin="&serin;"
+ 	xmlns:vel="&location;#"
+	xml:base="&location;">
+
+	<owl:Ontology rdf:about="&location;">
+		<owl:imports rdf:resource="&serin;" />
+	</owl:Ontology>
+
+	<!-- Propriedade marca
+	 (http://www.unifor.br/ontologies/Veiculo.owl#marca) -->
+	<owl:DatatypeProperty rdf:ID="marca">
+		<rdfs:domain rdf:resource="#Veiculo" />
+		<rdfs:range rdf:resource="&xsd;string" />
+	</owl:DatatypeProperty>
+
+	<!-- Propriedade modelo
+	 (http://www.unifor.br/ontologies/Veiculo.owl#modelo) -->
+	<owl:DatatypeProperty rdf:ID="modelo">
+		<rdfs:domain rdf:resource="#Veiculo" />
+		<rdfs:range rdf:resource="&xsd;string" />
+	</owl:DatatypeProperty>
+
+	<!-- http://www.unifor.br/ontologies/Veiculo.owl#Veiculo -->
+	<owl:Class rdf:ID="Veiculo">
+		<serin:get/>
+		<!-- <serin:post/> -->
+	</owl:Class>
+  	
+  	<vel:Veiculo rdf:about="http://www.unifor.br/veiculo.owl#Logan">
+    	<vel:modelo>Logan</vel:modelo>
+    	<vel:marca>Renault</vel:marca>
+  	</vel:Veiculo>
+</rdf:RDF>
