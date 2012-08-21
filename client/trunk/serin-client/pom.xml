@@ -34,6 +34,11 @@
 			<artifactId>resteasy-jaxrs</artifactId>
 			<version>2.3.4.Final</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jaxb-provider</artifactId>
+			<version>2.3.4.Final</version>
+		</dependency>
 	</dependencies>
 
 	<build>

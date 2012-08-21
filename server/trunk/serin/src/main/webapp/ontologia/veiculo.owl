@@ -37,11 +37,8 @@
 	<!-- http://www.unifor.br/ontologies/Veiculo.owl#Veiculo -->
 	<owl:Class rdf:ID="Veiculo">
 		<serin:get/>
-		<!-- <serin:post/> -->
+		<serin:post/>
+		<serin:list/>
+		<serin:delete/>
 	</owl:Class>
-  	
-  	<vel:Veiculo rdf:about="http://www.unifor.br/veiculo.owl#Logan">
-    	<vel:modelo>Logan</vel:modelo>
-    	<vel:marca>Renault</vel:marca>
-  	</vel:Veiculo>
 </rdf:RDF>
