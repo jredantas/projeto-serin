@@ -9,6 +9,8 @@ import java.util.Map;
 
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.vocabulary.RDF;
@@ -21,38 +23,41 @@ import com.hp.hpl.jena.vocabulary.RDF;
  * @since 06/06/2009
  */
 public class OntologyConverter {
-	
+
 	/**
 	 * Método que converte um objeto em uma instancia de uma ontologia....
 	 * 
 	 * @return
 	 * @throws IOException
 	 */
-	public static Collection<Individual> toOntology(OntModel model, Collection<Triple> triples) {
+	public static OntModel toOntology(Collection<Triple> triples) {
 
 		if (triples == null) {
 			return null;
 		}
 
+		OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+
 		Map<String, Individual> individualMap = new HashMap<String, Individual>();
 		List<Triple> propertiesTriples = new ArrayList<Triple>();
-		
+
 		for (Triple triple : triples) {
 			if (triple.getPred().equals(RDF.type.toString())) {
-				individualMap.put(triple.getSubj(),
-						model.createIndividual(triple.getSubj(), model.getResource(triple.getObj())));
+				individualMap.put(
+						triple.getSubj(),
+						model.createIndividual(triple.getSubj(), model.createResource(triple.getObj())));
 			} else {
 				propertiesTriples.add(triple);
 			}
 		}
-		
+
 		for (Triple triple : propertiesTriples) {
 			individualMap.get(triple.getSubj()).setPropertyValue(
-					model.getProperty(triple.getPred()),
+					model.createProperty(triple.getPred()),
 					model.createLiteral(triple.getObj()));
 		}
-		
-		return individualMap.values();	
+
+		return model;
 	}
 
 	/**
@@ -66,14 +71,16 @@ public class OntologyConverter {
 	public static Collection<Triple> getRepresentation(Individual individual) {
 
 		Collection<Triple> triples = new ArrayList<Triple>();
-		
+
 		StmtIterator itr = individual.listProperties();
 		while (itr.hasNext()) {
 			Statement statment = itr.next();
-			triples.add(new Triple(
-					statment.getSubject().getURI(),
-					statment.getPredicate().getURI(),
-					statment.getObject().toString()));
+			triples.add(
+					new Triple(
+							statment.getSubject().getURI(),
+							statment.getPredicate().getURI(),
+							statment.getObject().toString())
+					);
 		}
 		return triples;
 	}

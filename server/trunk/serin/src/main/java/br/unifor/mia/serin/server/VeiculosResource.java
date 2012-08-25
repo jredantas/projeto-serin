@@ -18,22 +18,30 @@ import javax.xml.bind.Marshaller;
 
 import org.jboss.resteasy.annotations.providers.jaxb.Wrapped;
 
-import br.unifor.mia.serin.Ontology;
-import br.unifor.mia.serin.VeiculoOntology;
 import br.unifor.mia.serin.util.OntologyConverter;
 import br.unifor.mia.serin.util.Triple;
 
 import com.hp.hpl.jena.ontology.Individual;
+import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 @Path("/veiculos")
 @Consumes(MediaType.TEXT_XML)
 public class VeiculosResource {
 
-	private static Ontology ontology = new VeiculoOntology();
+	private static OntModel model;
 	
-	public VeiculosResource() {
-		ontology.createIndividual("http://www.unifor.br/veiculo.owl#Logan", "Renault", "Logan");
+	static {
+		model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+		//model.getDocumentManager().addAltEntry(Veiculo.NS, URL.VEICULO);
+		model.getDocumentManager().addAltEntry(Serin.NS, URL.SERIN);
+		model.read(URL.VEICULO);
+		
+		Individual individuo = model.createIndividual("http://www.unifor.br/veiculo.owl#Logan", Veiculo.VEICULO);
+		individuo.setPropertyValue(Veiculo.MARCA, model.createLiteral("Renault"));
+		individuo.setPropertyValue(Veiculo.MODELO, model.createLiteral("Logan"));
 	}
 	
     @POST
@@ -41,7 +49,7 @@ public class VeiculosResource {
     	
     	printXML(triples);
     	
-    	OntologyConverter.toOntology(ontology.getModel(), triples);
+    	model.add(OntologyConverter.toOntology(triples));
     	
     	return Response.status(Status.CREATED).build();
 	}
@@ -49,11 +57,12 @@ public class VeiculosResource {
     @DELETE
     public Response deleteVeiculo(Collection<Triple> triples) {
     	
-    	Collection<Individual> individuals = OntologyConverter.toOntology(ontology.getModel(), triples);
+    	model.add(OntologyConverter.toOntology(triples));
+
+    	ExtendedIterator<Individual> individuals = model.listIndividuals();
     	
-    	for (Individual individual : individuals) {
-    		individual.remove();
-    	}
+    	while (individuals.hasNext())
+    		individuals.next().remove();
     	
     	return Response.status(Status.OK).build();
     }
@@ -65,7 +74,7 @@ public class VeiculosResource {
 		
 		Collection<Triple> result = new ArrayList<Triple>();
 		
-		ExtendedIterator<Individual> itr = ontology.getModel().listIndividuals();
+		ExtendedIterator<Individual> itr = model.listIndividuals();
 		
 		while (itr.hasNext()) {
 			Individual individual = itr.next();

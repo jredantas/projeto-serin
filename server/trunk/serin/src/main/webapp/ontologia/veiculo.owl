@@ -36,9 +36,9 @@
 
 	<!-- http://www.unifor.br/ontologies/Veiculo.owl#Veiculo -->
 	<owl:Class rdf:ID="Veiculo">
-		<serin:get/>
-		<serin:post/>
-		<serin:list/>
-		<serin:delete/>
+		<serin:get rdf:resource="http://localhost:8080/serin/ws/veiculos" />
+		<serin:post rdf:resource="http://localhost:8080/serin/ws/veiculos"/>
+		<serin:list rdf:resource="http://localhost:8080/serin/ws/veiculos" />
+		<serin:delete rdf:resource="http://localhost:8080/serin/ws/veiculos"/>
 	</owl:Class>
 </rdf:RDF>

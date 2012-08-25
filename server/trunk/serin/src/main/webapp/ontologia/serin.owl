@@ -16,27 +16,27 @@
 	<owl:Ontology rdf:about="&location;" />
 
 	<owl:AnnotationProperty rdf:ID="get">
-		<rdf:type rdf:resource="&owl;AnnotationProperty" />
+		<!-- <rdf:type rdf:resource="&owl;AnnotationProperty" /> -->
 		<rdfs:range rdf:resource="&xsd;string" />
 	</owl:AnnotationProperty>
 
 	<owl:AnnotationProperty rdf:ID="delete">
-		<rdf:type rdf:resource="&owl;AnnotationProperty" />
+		<!-- <rdf:type rdf:resource="&owl;AnnotationProperty" /> -->
 		<rdfs:range rdf:resource="&xsd;string" />
 	</owl:AnnotationProperty>
 
 	<owl:AnnotationProperty rdf:ID="put">
-		<rdf:type rdf:resource="&owl;AnnotationProperty" />
+		<!-- <rdf:type rdf:resource="&owl;AnnotationProperty" /> -->
 		<rdfs:range rdf:resource="&xsd;string" />
 	</owl:AnnotationProperty>
 
 	<owl:AnnotationProperty rdf:ID="post">
-		<rdf:type rdf:resource="&owl;AnnotationProperty" />
+		<!-- <rdf:type rdf:resource="&owl;AnnotationProperty" /> -->
 		<rdfs:range rdf:resource="&xsd;string" />
 	</owl:AnnotationProperty>
 
 	<owl:AnnotationProperty rdf:ID="list">
-		<rdf:type rdf:resource="&owl;AnnotationProperty" />
+		<!-- <rdf:type rdf:resource="&owl;AnnotationProperty" /> -->
 		<rdfs:range rdf:resource="&xsd;string" />
 	</owl:AnnotationProperty>
 </rdf:RDF>
