@@ -1,5 +1,6 @@
 package br.unifor.mia.serin.server;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -7,89 +8,172 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
 import org.jboss.resteasy.annotations.providers.jaxb.Wrapped;
 
-import br.unifor.mia.serin.util.OntologyConverter;
 import br.unifor.mia.serin.util.Triple;
 
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryExecution;
+import com.hp.hpl.jena.query.QueryExecutionFactory;
+import com.hp.hpl.jena.query.QueryFactory;
+import com.hp.hpl.jena.query.QuerySolution;
+import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import com.hp.hpl.jena.update.UpdateAction;
+import com.hp.hpl.jena.update.UpdateFactory;
+import com.hp.hpl.jena.update.UpdateRequest;
+import com.hp.hpl.jena.vocabulary.RDF;
 
-@Path("/veiculos")
+@Path("/www.unifor.br/veiculo.owl/{ontClass}")
 @Consumes(MediaType.TEXT_XML)
 public class VeiculosResource {
 
 	private static OntModel model;
 	
-	static {
-		model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-		//model.getDocumentManager().addAltEntry(Veiculo.NS, URL.VEICULO);
-		model.getDocumentManager().addAltEntry(Serin.NS, URL.SERIN);
-		model.read(URL.VEICULO);
+	public VeiculosResource() {
 		
-		Individual individuo = model.createIndividual("http://www.unifor.br/veiculo.owl#Logan", Veiculo.VEICULO);
-		individuo.setPropertyValue(Veiculo.MARCA, model.createLiteral("Renault"));
-		individuo.setPropertyValue(Veiculo.MODELO, model.createLiteral("Logan"));
+		if (model == null) {
+			String urlSerin = getClass().getClassLoader().getResource("serin.owl").toString().replace("vfs:", "file://");
+			InputStream inVeiculo = getClass().getClassLoader().getResourceAsStream("veiculo.owl");
+			
+			model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+			model.getDocumentManager().addAltEntry(Serin.NS, urlSerin);
+			model.read(inVeiculo, null);
+			
+			Individual individuo = model.createIndividual("http://www.unifor.br/veiculo.owl#Logan", Veiculo.VEICULO);
+			individuo.setPropertyValue(Veiculo.MARCA, model.createLiteral("Renault"));
+			individuo.setPropertyValue(Veiculo.MODELO, model.createLiteral("Logan"));
+		}
+	}
+	
+	@PUT
+	@Wrapped(element = "triples")
+	public Response putVeiculo(Collection<Triple> triples) {
+		
+		String insertString = "INSERT DATA {";
+		
+		for (Triple triple : triples) {
+			if (triple.getPred().equals(RDF.type.toString())) {
+				insertString += "<"+triple.getSubj()+"> a <"+triple.getObj()+">.";
+			} else {
+				insertString += "<"+triple.getSubj()+"> <"+triple.getPred()+"> \""+triple.getObj()+"\".";	
+			}
+		}
+		
+		insertString += "}";
+		
+    	UpdateRequest request = UpdateFactory.create(insertString);
+    	
+    	UpdateAction.execute(request, model);
+
+    	return Response.status(Status.CREATED).build();
 	}
 	
     @POST
-	public Response postVeiculo(Collection<Triple> triples) throws JAXBException {
+    @Path("{rdfID}")
+	public Response postVeiculo(@PathParam("ontClass") String ontClass,
+			@PathParam("rdfID") String rdfID, Collection<Triple> triples) {
+
+    	String uriID = Veiculo.NS + rdfID;   	
+    	String deletePartString = "DELETE {<"+uriID+"> ?p ?o}";
     	
-    	printXML(triples);
+    	String wherePartString = "WHERE {<"+uriID+"> ?p ?o}";
     	
-    	model.add(OntologyConverter.toOntology(triples));
+		String insertPartString = "INSERT {";
+
+		for (Triple triple : triples) {
+			if (triple.getPred().equals(RDF.type.toString())) {
+				insertPartString += "<"+uriID+"> a <"+triple.getObj()+">.";
+			} else {
+				insertPartString += "<"+uriID+"> <"+triple.getPred()+"> \""+triple.getObj()+"\".";	
+			}
+		}
+		
+		insertPartString += "}";
+		
+    	UpdateRequest request = UpdateFactory.create(deletePartString + insertPartString + wherePartString);
+    	
+    	UpdateAction.execute(request, model);
     	
     	return Response.status(Status.CREATED).build();
 	}
     
     @DELETE
-    public Response deleteVeiculo(Collection<Triple> triples) {
+    @Path("{rdfID}")
+    public Response deleteVeiculo(@PathParam("ontClass") String ontClass, @PathParam("rdfID")String rdfID) {
     	
-    	model.add(OntologyConverter.toOntology(triples));
+    	String uriID = Veiculo.NS + rdfID;   	
+    	String deleteString = "DELETE WHERE {<"+uriID+"> ?p ?o}";
+    	
+    	UpdateRequest request = UpdateFactory.create(deleteString);
+    	UpdateAction.execute(request, model);
 
-    	ExtendedIterator<Individual> individuals = model.listIndividuals();
-    	
-    	while (individuals.hasNext())
-    		individuals.next().remove();
-    	
     	return Response.status(Status.OK).build();
     }
 	
 	@GET
 	@Wrapped(element = "triples")
 	@Produces(MediaType.TEXT_XML)
-	public Collection<Triple> listVeiculo() {
-		
-		Collection<Triple> result = new ArrayList<Triple>();
-		
-		ExtendedIterator<Individual> itr = model.listIndividuals();
-		
-		while (itr.hasNext()) {
-			Individual individual = itr.next();
-			result.addAll(OntologyConverter.getRepresentation(individual));
-		}
-		
-		return result;
-	}
+	public Collection<Triple> listVeiculo(@PathParam("ontClass") String ontClass) {
 
-	private void printXML(Collection<Triple> triples)  throws JAXBException {
-		JAXBContext context = JAXBContext.newInstance(Triple.class);
-		Marshaller m = context.createMarshaller();
-		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-		for (Triple triple : triples) {
-			m.marshal(triple, System.out);
-		}
+        String queryString = "SELECT * WHERE {?s a <"+ Veiculo.NS + ontClass +">. ?s ?p ?o.}";
+        Query query = QueryFactory.create(queryString);
+        
+        // Create a single execution of this query, apply to a model
+        // which is wrapped up as a Dataset
+        QueryExecution qexec = QueryExecutionFactory.create(query, model);
+
+        try {
+        	Collection<Triple> result = new ArrayList<Triple>();
+        	
+        	ResultSet rs = qexec.execSelect();
+        	
+            // The order of results is undefined. 
+            while (rs.hasNext()) {
+            	QuerySolution rb = rs.nextSolution();
+            	result.add(new Triple(rb.get("s").toString(), rb.get("p").toString(), rb.get("o").toString()));
+            }
+            return result;
+        } finally {
+            // QueryExecution objects should be closed to free any system resources
+        	qexec.close();
+        }
+	}
+	
+	@GET
+	@Wrapped(element = "triples")
+	@Produces(MediaType.TEXT_XML)
+	@Path("{rdfID}")
+	public Collection<Triple> getVeiculo(@PathParam("ontClass") String ontClass, @PathParam("rdfID")String rdfID) {
+		
+		String uriID = Veiculo.NS + rdfID;
+        String queryString = "SELECT * WHERE {<"+ uriID +"> ?pred ?obj}";
+        Query query = QueryFactory.create(queryString);
+        QueryExecution qexec = QueryExecutionFactory.create(query, model);
+
+		try {
+        	Collection<Triple> result = new ArrayList<Triple>();
+        	ResultSet rs = qexec.execSelect();
+            // The order of results is undefined. 
+            while (rs.hasNext()) {
+            	QuerySolution rb = rs.nextSolution();
+    			result.add(new Triple(uriID, rb.get("pred").toString(), rb.get("obj").toString()));
+            }
+            return result;
+        } finally {
+            // QueryExecution objects should be closed to free any system resources
+        	qexec.close();
+        }
 	}
 }

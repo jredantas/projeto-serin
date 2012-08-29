@@ -7,6 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
@@ -82,6 +86,22 @@ public class OntologyConverter {
 							statment.getObject().toString())
 					);
 		}
+		
+		/*try {
+			printXML(triples);
+		} catch (JAXBException e) {
+			e.printStackTrace();
+		}*/
+		
 		return triples;
+	}
+	
+	private static void printXML(Collection<Triple> triples)  throws JAXBException {
+		JAXBContext context = JAXBContext.newInstance(Triple.class);
+		Marshaller m = context.createMarshaller();
+		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+		for (Triple triple : triples) {
+			m.marshal(triple, System.out);
+		}
 	}
 }

@@ -15,8 +15,7 @@ public class Veiculo {
 	 * The ontology model that holds the vocabulary terms
 	 * </p>
 	 */
-	protected static OntModel m_model = ModelFactory.createOntologyModel(
-			OntModelSpec.OWL_MEM, null);
+	private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
 
 	/**
 	 * <p>
@@ -43,13 +42,17 @@ public class Veiculo {
 	 */
 	public static final Resource NAMESPACE = m_model.createResource(NS);
 
-	public static final DatatypeProperty MARCA = m_model
-			.createDatatypeProperty("http://www.unifor.br/veiculo.owl#marca");
+	public static final DatatypeProperty MARCA = m_model.createDatatypeProperty("http://www.unifor.br/veiculo.owl#marca");
 
-	public static final DatatypeProperty MODELO = m_model
-			.createDatatypeProperty("http://www.unifor.br/veiculo.owl#modelo");
+	public static final DatatypeProperty MODELO = m_model.createDatatypeProperty("http://www.unifor.br/veiculo.owl#modelo");
 
-	public static final OntClass VEICULO = m_model
-			.createClass("http://www.unifor.br/veiculo.owl#Veiculo");
+	public static final OntClass VEICULO = m_model.createClass("http://www.unifor.br/veiculo.owl#Veiculo");
 
+	static {
+		VEICULO.addProperty(Serin.DELETE, "");
+		VEICULO.addProperty(Serin.GET, "");
+		VEICULO.addProperty(Serin.LIST, "");
+		VEICULO.addProperty(Serin.POST, "");
+		VEICULO.addProperty(Serin.PUT, "");
+	}
 }
