@@ -47,12 +47,4 @@ public class Veiculo {
 	public static final DatatypeProperty MODELO = m_model.createDatatypeProperty("http://www.unifor.br/veiculo.owl#modelo");
 
 	public static final OntClass VEICULO = m_model.createClass("http://www.unifor.br/veiculo.owl#Veiculo");
-
-	static {
-		VEICULO.addProperty(Serin.DELETE, "");
-		VEICULO.addProperty(Serin.GET, "");
-		VEICULO.addProperty(Serin.LIST, "");
-		VEICULO.addProperty(Serin.POST, "");
-		VEICULO.addProperty(Serin.PUT, "");
-	}
 }

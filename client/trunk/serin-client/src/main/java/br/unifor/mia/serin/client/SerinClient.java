@@ -1,7 +1,6 @@
 package br.unifor.mia.serin.client;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,18 +12,12 @@ import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.util.GenericType;
 
-import br.unifor.mia.serin.server.Serin;
 import br.unifor.mia.serin.util.OntologyConverter;
 import br.unifor.mia.serin.util.Triple;
 
-import com.hp.hpl.jena.ontology.AnnotationProperty;
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.ontology.OntModelSpec;
-import com.hp.hpl.jena.ontology.OntResource;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 /**
@@ -37,79 +30,17 @@ import com.hp.hpl.jena.util.iterator.ExtendedIterator;
  *   
  * @author Hermano
  */
-public class SerinClient extends Serin {
+public class SerinClient {
 	
 	private final GenericType<Collection<Triple>> TRIPLES_TYPE = new GenericType<Collection<Triple>>(){};
 	
 	private String urlActiveOntology;
 	
 	private String urlOntology;
-	
-	private OntModel model;
 
-	public SerinClient(String urlHost, String uriOntology) throws IOException {
-		
+	public SerinClient(String urlHost, String uriOntology, String urlOntology) throws IOException {
 		this.urlActiveOntology = urlHost + "/serin/" + uriOntology;
-		
-		String urlSerin = getClass().getClassLoader().getResource("serin.owl").toString();
-		
-		URL ontology = getClass().getClassLoader().getResource(uriOntology.substring(uriOntology.indexOf('/')+1));
-		
-		urlOntology = ontology.toString();
-		
-		model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-		model.getDocumentManager().addAltEntry(Serin.NS, urlSerin);
-		model.read(ontology.openStream(), null);
-		
-	}
-
-	private boolean hasSerinAnnotation(OntResource ontClass, AnnotationProperty anonProp) {
-		
-		if (ontClass == null) {
-			return false;
-		}
-
-		if (anonProp == null) {
-			return false;
-		}
-
-		if (ontClass.getProperty(anonProp) == null) {
-			return false;
-		}
-
-		Property anotation = ontClass.getProperty(anonProp).getPredicate();
-	
-		if (GET.equals(anotation) || PUT.equals(anotation) ||
-			POST.equals(anotation) || DELETE.equals(anotation)||
-			LIST.equals(anotation) ) {
-			return true;
-		}
-
-		return false;
-	}
-
-	private boolean hasSerinAnnotation(Individual individual, AnnotationProperty anonProp) {
-
-		if (individual == null) {
-			return false;
-		}
-
-		if (anonProp == null) {
-			return false;	
-		}
-		
-		if (individual.getOntClass().getProperty(anonProp) != null) {
-			
-			Property anotation = individual.getOntClass().getProperty(anonProp).getPredicate();
-			
-			if (GET.equals(anotation) || PUT.equals(anotation) ||
-				POST.equals(anotation) || DELETE.equals(anotation)||
-				LIST.equals(anotation) ) {
-				return true;
-			}
-		}
-
-		return false;
+		this.urlOntology = urlOntology;		
 	}
 
 	/**
@@ -122,11 +53,6 @@ public class SerinClient extends Serin {
 	public boolean put(Individual individual) throws Exception {
 	
 		String urlSerinClass = urlActiveOntology +"/"+ individual.getOntClass().getLocalName();
-		
-		if (!hasSerinAnnotation(individual, POST)) {
-			individual.remove();
-			return false;
-		}
 	
 		System.out.println("Invocando serviço web de inserção...");
 		ClientRequest request = new ClientRequest(urlSerinClass);
@@ -146,10 +72,6 @@ public class SerinClient extends Serin {
 	 * @throws Exception
 	 */
 	public boolean delete(OntClass ontClass, String rdfID) throws Exception {
-
-		if (!hasSerinAnnotation(ontClass, DELETE)) {
-			return false;
-		}
 		
 		String urlSerinIndividual = urlActiveOntology +"/"+ ontClass.getLocalName() + "/" + rdfID;
 		
@@ -167,10 +89,6 @@ public class SerinClient extends Serin {
 
 	@SuppressWarnings("unchecked")
 	public List<Individual> get(OntClass ontClass, String rdfID) throws Exception {
-
-		if (!hasSerinAnnotation(ontClass, LIST)) {
-			return null;
-		}
 		
 		String urlSerinIndividual = urlActiveOntology +"/"+ ontClass.getLocalName() + "/" + rdfID;
 
@@ -186,7 +104,7 @@ public class SerinClient extends Serin {
 			OntModel model = OntologyConverter.toOntology(triples);
 			model.read(urlActiveOntology);
 			
-			List<Individual> result = new ArrayList<>();
+			List<Individual> result = new ArrayList<Individual>();
 
 			ExtendedIterator<Individual> iterator = model.listIndividuals();
 					
@@ -210,10 +128,6 @@ public class SerinClient extends Serin {
 	@SuppressWarnings("unchecked")
 	public List<Individual> list(OntClass ontClass) throws Exception {
 
-		if (!hasSerinAnnotation(ontClass, LIST)) {
-			return null;
-		}
-
 		String urlSerinClass = urlActiveOntology +"/"+ ontClass.getLocalName();
 		
 		System.out.println("Invocando serviço web de busca...");
@@ -228,7 +142,7 @@ public class SerinClient extends Serin {
 			OntModel model = OntologyConverter.toOntology(triples);
 			model.read(urlOntology);
 			
-			List<Individual> result = new ArrayList<>();
+			List<Individual> result = new ArrayList<Individual>();
 
 			ExtendedIterator<Individual> iterator = model.listIndividuals();
 					
@@ -240,9 +154,5 @@ public class SerinClient extends Serin {
 		}
 
 		return null;
-	}
-
-	public OntModel getOntModel() {
-		return model;
 	}
 }

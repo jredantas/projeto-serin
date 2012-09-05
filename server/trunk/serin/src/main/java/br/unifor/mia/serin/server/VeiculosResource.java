@@ -1,5 +1,11 @@
 package br.unifor.mia.serin.server;
 
+import static br.unifor.mia.serin.server.Serin.DELETE;
+import static br.unifor.mia.serin.server.Serin.GET;
+import static br.unifor.mia.serin.server.Serin.LIST;
+import static br.unifor.mia.serin.server.Serin.POST;
+import static br.unifor.mia.serin.server.Serin.PUT;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,7 +26,9 @@ import org.jboss.resteasy.annotations.providers.jaxb.Wrapped;
 
 import br.unifor.mia.serin.util.Triple;
 
+import com.hp.hpl.jena.ontology.AnnotationProperty;
 import com.hp.hpl.jena.ontology.Individual;
+import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.query.Query;
@@ -30,6 +38,7 @@ import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.update.UpdateAction;
 import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
@@ -57,9 +66,40 @@ public class VeiculosResource {
 		}
 	}
 	
+	private boolean hasSerinAnnotation(OntClass ontClass, AnnotationProperty anonProp) {
+		
+		if (ontClass == null) {
+			return false;
+		}
+
+		if (anonProp == null) {
+			return false;
+		}
+
+		if (ontClass.getProperty(anonProp) == null) {
+			return false;
+		}
+
+		Property anotation = ontClass.getProperty(anonProp).getPredicate();
+	
+		if (GET.equals(anotation) || PUT.equals(anotation) ||
+			POST.equals(anotation) || DELETE.equals(anotation)||
+			LIST.equals(anotation) ) {
+			return true;
+		}
+
+		return false;
+	}
+	
 	@PUT
 	@Wrapped(element = "triples")
 	public Response putVeiculo(Collection<Triple> triples) {
+		
+		//TODO [Chamar método "hasSerinAnnotation"]
+		/*if (!hasSerinAnnotation(individual.getOntClass(), PUT)) {
+			individual.remove();
+			return false;
+		}*/
 		
 		String insertString = "INSERT DATA {";
 		
@@ -85,6 +125,8 @@ public class VeiculosResource {
 	public Response postVeiculo(@PathParam("ontClass") String ontClass,
 			@PathParam("rdfID") String rdfID, Collection<Triple> triples) {
 
+		//TODO [Chamar método "hasSerinAnnotation"]
+    	
     	String uriID = Veiculo.NS + rdfID;   	
     	String deletePartString = "DELETE {<"+uriID+"> ?p ?o}";
     	
@@ -113,6 +155,11 @@ public class VeiculosResource {
     @Path("{rdfID}")
     public Response deleteVeiculo(@PathParam("ontClass") String ontClass, @PathParam("rdfID")String rdfID) {
     	
+		//TODO [Chamar método "hasSerinAnnotation"]
+		/*if (!hasSerinAnnotation(ontClass, DELETE)) {
+			return false;
+		}*/
+		
     	String uriID = Veiculo.NS + rdfID;   	
     	String deleteString = "DELETE WHERE {<"+uriID+"> ?p ?o}";
     	
@@ -127,6 +174,11 @@ public class VeiculosResource {
 	@Produces(MediaType.TEXT_XML)
 	public Collection<Triple> listVeiculo(@PathParam("ontClass") String ontClass) {
 
+		//TODO [Chamar método "hasSerinAnnotation"]
+		/*if (!hasSerinAnnotation(ontClass, LIST)) {
+			return null;
+		}*/
+		
         String queryString = "SELECT * WHERE {?s a <"+ Veiculo.NS + ontClass +">. ?s ?p ?o.}";
         Query query = QueryFactory.create(queryString);
         
@@ -156,6 +208,11 @@ public class VeiculosResource {
 	@Produces(MediaType.TEXT_XML)
 	@Path("{rdfID}")
 	public Collection<Triple> getVeiculo(@PathParam("ontClass") String ontClass, @PathParam("rdfID")String rdfID) {
+		
+		//TODO [Chamar método "hasSerinAnnotation"]
+		/*if (!hasSerinAnnotation(ontClass, LIST)) {
+			return null;
+		}*/
 		
 		String uriID = Veiculo.NS + rdfID;
         String queryString = "SELECT * WHERE {<"+ uriID +"> ?pred ?obj}";
