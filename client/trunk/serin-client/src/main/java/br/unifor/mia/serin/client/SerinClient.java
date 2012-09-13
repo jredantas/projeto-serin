@@ -1,24 +1,19 @@
 package br.unifor.mia.serin.client;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
-import org.jboss.resteasy.util.GenericType;
 
+import br.unifor.mia.serin.util.Description;
 import br.unifor.mia.serin.util.OntologyConverter;
-import br.unifor.mia.serin.util.Triple;
+import br.unifor.mia.serin.util.RDF;
 
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntClass;
-import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 /**
  * Algumas restrições foram criadas quanto ao uso das anotações:
@@ -32,15 +27,10 @@ import com.hp.hpl.jena.util.iterator.ExtendedIterator;
  */
 public class SerinClient {
 	
-	private final GenericType<Collection<Triple>> TRIPLES_TYPE = new GenericType<Collection<Triple>>(){};
-	
 	private String urlActiveOntology;
-	
-	private String urlOntology;
 
-	public SerinClient(String urlHost, String uriOntology, String urlOntology) throws IOException {
-		this.urlActiveOntology = urlHost + "/serin/" + uriOntology;
-		this.urlOntology = urlOntology;		
+	public SerinClient(String urlHost, String uriOntology) throws IOException {
+		this.urlActiveOntology = urlHost + "/serin/" + uriOntology;	
 	}
 
 	/**
@@ -50,20 +40,40 @@ public class SerinClient {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean put(Individual individual) throws Exception {
-	
+	public boolean put(Individual individual) throws Exception{
+		
+		String rdfXml = OntologyConverter.toRDFXML(individual);
+		
 		String urlSerinClass = urlActiveOntology +"/"+ individual.getOntClass().getLocalName();
 	
 		System.out.println("Invocando serviço web de inserção...");
 		ClientRequest request = new ClientRequest(urlSerinClass);
 
-		request.body(MediaType.TEXT_XML_TYPE, OntologyConverter.getRepresentation(individual), TRIPLES_TYPE);
+		request.body(MediaType.TEXT_XML, rdfXml);
 
-		ClientResponse<GenericType<Collection<Triple>>> response = request.put(TRIPLES_TYPE);
+		ClientResponse<String> response = request.put(String.class);
 
 		return response.getResponseStatus().equals(Status.CREATED);
 	}
+
+	public boolean post(Individual individual) throws Exception {
+
+		String rdfXml = OntologyConverter.toRDFXML(individual);
+		
+		String urlSerinClass =
+				urlActiveOntology +"/"+ individual.getOntClass().getLocalName() + "/" + individual.getURI().split("#")[1];
 	
+		System.out.println("Invocando serviço web de atualização...");
+		ClientRequest request = new ClientRequest(urlSerinClass);
+
+		request.body(MediaType.TEXT_XML, rdfXml);
+
+		ClientResponse<String> response = request.post(String.class);
+
+		return response.getResponseStatus().equals(Status.CREATED);
+		
+	}
+
 	/**
 	 * Delete um individuo da ontologia.
 	 * 
@@ -78,7 +88,7 @@ public class SerinClient {
 		System.out.println("Invocando serviço web de deleção...");
 		ClientRequest request = new ClientRequest(urlSerinIndividual);
 
-		ClientResponse<GenericType<Collection<Triple>>> response = request.delete(TRIPLES_TYPE);
+		ClientResponse<String> response = request.delete(String.class);
 
 		if (response.getResponseStatus().equals(Status.OK)) {
 			return true;
@@ -87,34 +97,23 @@ public class SerinClient {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public List<Individual> get(OntClass ontClass, String rdfID) throws Exception {
+	public Description get(OntClass ontClass, String rdfID) throws Exception {
 		
 		String urlSerinIndividual = urlActiveOntology +"/"+ ontClass.getLocalName() + "/" + rdfID;
 
 		System.out.println("Invocando serviço web de busca...");
 		ClientRequest request = new ClientRequest(urlSerinIndividual);
 		
-		ClientResponse<GenericType<Collection<Triple>>> response = request.get(TRIPLES_TYPE);
+		ClientResponse<String> response = request.get(String.class);
 
 		if (response.getResponseStatus().equals(Status.OK)) {
 
-			Collection<Triple> triples = (Collection<Triple>) response.getEntity();
+			String rdfXml = (String) response.getEntity();
 
-			OntModel model = OntologyConverter.toOntology(triples);
-			model.read(urlActiveOntology);
-			
-			List<Individual> result = new ArrayList<Individual>();
+			RDF rdf = OntologyConverter.toObject(rdfXml);
 
-			ExtendedIterator<Individual> iterator = model.listIndividuals();
-					
-			while (iterator.hasNext()) {
-				result.add(iterator.next());
-			}
-
-			return result;
+			return rdf.getDescriptions().size() > 0 ? rdf.getDescriptions().get(0) : null;
 		}
-
 		return null;
 	}
 	
@@ -125,32 +124,20 @@ public class SerinClient {
 	 * @return
 	 * @throws Exception
 	 */
-	@SuppressWarnings("unchecked")
-	public List<Individual> list(OntClass ontClass) throws Exception {
+	public RDF list(OntClass ontClass) throws Exception {
 
 		String urlSerinClass = urlActiveOntology +"/"+ ontClass.getLocalName();
 		
 		System.out.println("Invocando serviço web de busca...");
 		ClientRequest request = new ClientRequest(urlSerinClass);
 		
-		ClientResponse<GenericType<Collection<Triple>>> response = request.get(TRIPLES_TYPE);
+		ClientResponse<String> response = request.get(String.class);
 
 		if (response.getResponseStatus().equals(Status.OK)) {
 
-			Collection<Triple> triples = (Collection<Triple>) response.getEntity();
+			String rdfXml = (String) response.getEntity();
 
-			OntModel model = OntologyConverter.toOntology(triples);
-			model.read(urlOntology);
-			
-			List<Individual> result = new ArrayList<Individual>();
-
-			ExtendedIterator<Individual> iterator = model.listIndividuals();
-					
-			while (iterator.hasNext()) {
-				result.add(iterator.next());
-			}
-
-			return result;
+			return OntologyConverter.toObject(rdfXml);
 		}
 
 		return null;

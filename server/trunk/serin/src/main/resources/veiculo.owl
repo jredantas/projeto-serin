@@ -36,6 +36,7 @@
 
 	<!-- http://www.unifor.br/ontologies/Veiculo.owl#Veiculo -->
 	<owl:Class rdf:ID="Veiculo">
+		<serin:put/>
 		<serin:get/>
 		<serin:post/>
 		<serin:list/>

@@ -6,9 +6,11 @@ import static br.unifor.mia.serin.server.Serin.LIST;
 import static br.unifor.mia.serin.server.Serin.POST;
 import static br.unifor.mia.serin.server.Serin.PUT;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -21,27 +23,23 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.stream.XMLStreamException;
 
-import org.jboss.resteasy.annotations.providers.jaxb.Wrapped;
+import br.unifor.mia.serin.util.Description;
+import br.unifor.mia.serin.util.OntologyConverter;
 
-import br.unifor.mia.serin.util.Triple;
-
-import com.hp.hpl.jena.ontology.AnnotationProperty;
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
-import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.update.UpdateAction;
 import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
+import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 import com.hp.hpl.jena.vocabulary.RDF;
 
 @Path("/www.unifor.br/veiculo.owl/{ontClass}")
@@ -66,21 +64,24 @@ public class VeiculosResource {
 		}
 	}
 	
-	private boolean hasSerinAnnotation(OntClass ontClass, AnnotationProperty anonProp) {
+	private boolean hasSerinAnnotation(String classURI, String serinAnotationURI) {
 		
-		if (ontClass == null) {
+		if (classURI == null) {
 			return false;
 		}
 
-		if (anonProp == null) {
+		if (serinAnotationURI == null) {
 			return false;
 		}
 
-		if (ontClass.getProperty(anonProp) == null) {
+		OntClass ontClass = model.getOntClass(classURI);
+		Property serinAnot = model.getProperty(serinAnotationURI);
+		
+		if (ontClass.getProperty(serinAnot) == null) {
 			return false;
 		}
 
-		Property anotation = ontClass.getProperty(anonProp).getPredicate();
+		Property anotation = ontClass.getProperty(serinAnot).getPredicate();
 	
 		if (GET.equals(anotation) || PUT.equals(anotation) ||
 			POST.equals(anotation) || DELETE.equals(anotation)||
@@ -92,22 +93,22 @@ public class VeiculosResource {
 	}
 	
 	@PUT
-	@Wrapped(element = "triples")
-	public Response putVeiculo(Collection<Triple> triples) {
+	@Consumes(MediaType.TEXT_XML)
+	public Response putVeiculo(String rdfXml) {
 		
-		//TODO [Chamar método "hasSerinAnnotation"]
-		/*if (!hasSerinAnnotation(individual.getOntClass(), PUT)) {
-			individual.remove();
-			return false;
-		}*/
+		Description individual = OntologyConverter.toObject(rdfXml).getDescriptions().get(0);
+		
+		if (!hasSerinAnnotation(individual.getType(), PUT.getURI())) {
+			return Response.status(Status.NOT_ACCEPTABLE).build();
+		}
 		
 		String insertString = "INSERT DATA {";
 		
-		for (Triple triple : triples) {
-			if (triple.getPred().equals(RDF.type.toString())) {
-				insertString += "<"+triple.getSubj()+"> a <"+triple.getObj()+">.";
+		for (String propertyURI : individual.getProperties().keySet()) {
+			if (propertyURI.equals(RDF.type.toString())) {
+				insertString += "<"+individual.getRdfID()+"> a <"+individual.getProperties().get(RDF.type.toString())+">.";
 			} else {
-				insertString += "<"+triple.getSubj()+"> <"+triple.getPred()+"> \""+triple.getObj()+"\".";	
+				insertString += "<"+individual.getRdfID()+"> <"+propertyURI+"> \""+individual.getProperties().get(propertyURI)+"\".";	
 			}
 		}
 		
@@ -122,31 +123,33 @@ public class VeiculosResource {
 	
     @POST
     @Path("{rdfID}")
-	public Response postVeiculo(@PathParam("ontClass") String ontClass,
-			@PathParam("rdfID") String rdfID, Collection<Triple> triples) {
+	@Consumes(MediaType.TEXT_XML)
+	public Response postVeiculo(@PathParam("ontClass") String ontClass, @PathParam("rdfID") String rdfID, String rdfXml) {
 
-		//TODO [Chamar método "hasSerinAnnotation"]
-    	
-    	String uriID = Veiculo.NS + rdfID;   	
-    	String deletePartString = "DELETE {<"+uriID+"> ?p ?o}";
-    	
-    	String wherePartString = "WHERE {<"+uriID+"> ?p ?o}";
-    	
-		String insertPartString = "INSERT {";
-
-		for (Triple triple : triples) {
-			if (triple.getPred().equals(RDF.type.toString())) {
-				insertPartString += "<"+uriID+"> a <"+triple.getObj()+">.";
-			} else {
-				insertPartString += "<"+uriID+"> <"+triple.getPred()+"> \""+triple.getObj()+"\".";	
-			}
+		if (!hasSerinAnnotation(Veiculo.NS + ontClass, POST.toString())) {
+			return Response.status(Status.NOT_ACCEPTABLE).build();
 		}
 		
-		insertPartString += "}";
-		
-    	UpdateRequest request = UpdateFactory.create(deletePartString + insertPartString + wherePartString);
+		HashMap<String, String> properties = OntologyConverter.toObject(rdfXml).getDescriptions().get(0).getProperties();
     	
-    	UpdateAction.execute(request, model);
+		String uriID = Veiculo.NS + rdfID;
+    	
+		for (String property : properties.keySet()) {
+			String deletePartString = "DELETE {<"+uriID+"> <"+ property +"> ?o}";
+	    	String insertPartString = "INSERT {";
+	    	
+	    	if (property.equals(RDF.type.toString())) {
+				insertPartString += "<"+uriID+"> a <"+properties.get(property)+">.";
+			} else {
+				insertPartString += "<"+uriID+"> <"+property+"> \""+properties.get(property)+"\".";	
+			}
+	    	
+	    	insertPartString += "}";
+	    	String wherePartString = "WHERE {<"+uriID+"> <"+ property +"> ?o}";
+	    	
+	    	UpdateRequest request = UpdateFactory.create(deletePartString + insertPartString + wherePartString);
+	    	UpdateAction.execute(request, model);
+		}
     	
     	return Response.status(Status.CREATED).build();
 	}
@@ -155,12 +158,11 @@ public class VeiculosResource {
     @Path("{rdfID}")
     public Response deleteVeiculo(@PathParam("ontClass") String ontClass, @PathParam("rdfID")String rdfID) {
     	
-		//TODO [Chamar método "hasSerinAnnotation"]
-		/*if (!hasSerinAnnotation(ontClass, DELETE)) {
-			return false;
-		}*/
+		if (!hasSerinAnnotation(Veiculo.NS + ontClass, DELETE.toString())) {
+			return Response.status(Status.NOT_ACCEPTABLE).build();
+		}
 		
-    	String uriID = Veiculo.NS + rdfID;   	
+    	String uriID = Veiculo.NS + rdfID;
     	String deleteString = "DELETE WHERE {<"+uriID+"> ?p ?o}";
     	
     	UpdateRequest request = UpdateFactory.create(deleteString);
@@ -170,67 +172,59 @@ public class VeiculosResource {
     }
 	
 	@GET
-	@Wrapped(element = "triples")
 	@Produces(MediaType.TEXT_XML)
-	public Collection<Triple> listVeiculo(@PathParam("ontClass") String ontClass) {
+	public Response listVeiculo(@PathParam("ontClass") String ontClass) {
 
-		//TODO [Chamar método "hasSerinAnnotation"]
-		/*if (!hasSerinAnnotation(ontClass, LIST)) {
-			return null;
-		}*/
-		
-        String queryString = "SELECT * WHERE {?s a <"+ Veiculo.NS + ontClass +">. ?s ?p ?o.}";
-        Query query = QueryFactory.create(queryString);
-        
-        // Create a single execution of this query, apply to a model
-        // which is wrapped up as a Dataset
-        QueryExecution qexec = QueryExecutionFactory.create(query, model);
+		if (!hasSerinAnnotation(Veiculo.NS + ontClass, LIST.toString())) {
+			return Response.status(Status.NOT_ACCEPTABLE).build();
+		}
 
-        try {
-        	Collection<Triple> result = new ArrayList<Triple>();
-        	
-        	ResultSet rs = qexec.execSelect();
-        	
-            // The order of results is undefined. 
-            while (rs.hasNext()) {
-            	QuerySolution rb = rs.nextSolution();
-            	result.add(new Triple(rb.get("s").toString(), rb.get("p").toString(), rb.get("o").toString()));
-            }
-            return result;
-        } finally {
-            // QueryExecution objects should be closed to free any system resources
-        	qexec.close();
+        Resource cls = ResourceFactory.createResource(Veiculo.NS + ontClass);
+
+        ExtendedIterator<Individual> list = model.listIndividuals(cls);
+
+        List<Individual> individuals = new ArrayList<Individual>();
+
+        while (list.hasNext()) {
+        	individuals.add(list.next());
         }
+        
+		try {
+			
+			String result = OntologyConverter.toRDFXML(individuals.toArray(new Individual[individuals.size()]));
+			return Response.ok(result).build();
+			
+		} catch (XMLStreamException e) {
+			e.printStackTrace();
+			return Response.serverError().build();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return Response.serverError().build();
+		}
 	}
 	
 	@GET
-	@Wrapped(element = "triples")
 	@Produces(MediaType.TEXT_XML)
 	@Path("{rdfID}")
-	public Collection<Triple> getVeiculo(@PathParam("ontClass") String ontClass, @PathParam("rdfID")String rdfID) {
+	public Response getVeiculo(@PathParam("ontClass") String ontClass, @PathParam("rdfID")String rdfID) {
 		
-		//TODO [Chamar método "hasSerinAnnotation"]
-		/*if (!hasSerinAnnotation(ontClass, LIST)) {
-			return null;
-		}*/
+		if (!hasSerinAnnotation(Veiculo.NS + ontClass, GET.toString())) {
+			return Response.status(Status.NOT_ACCEPTABLE).build();
+		}
 		
-		String uriID = Veiculo.NS + rdfID;
-        String queryString = "SELECT * WHERE {<"+ uriID +"> ?pred ?obj}";
-        Query query = QueryFactory.create(queryString);
-        QueryExecution qexec = QueryExecutionFactory.create(query, model);
+		Individual individual = model.getIndividual(Veiculo.NS + rdfID);
 
 		try {
-        	Collection<Triple> result = new ArrayList<Triple>();
-        	ResultSet rs = qexec.execSelect();
-            // The order of results is undefined. 
-            while (rs.hasNext()) {
-            	QuerySolution rb = rs.nextSolution();
-    			result.add(new Triple(uriID, rb.get("pred").toString(), rb.get("obj").toString()));
-            }
-            return result;
-        } finally {
-            // QueryExecution objects should be closed to free any system resources
-        	qexec.close();
-        }
+			
+			String result = OntologyConverter.toRDFXML(individual);
+			return Response.ok(result).build();
+			
+		} catch (XMLStreamException e) {
+			e.printStackTrace();
+			return Response.serverError().build();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return Response.serverError().build();
+		}
 	}
 }

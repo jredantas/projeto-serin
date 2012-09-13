@@ -1,9 +1,10 @@
 import java.net.URL;
-import java.util.List;
 
 import br.unifor.mia.serin.client.SerinClient;
 import br.unifor.mia.serin.server.Serin;
 import br.unifor.mia.serin.server.Veiculo;
+import br.unifor.mia.serin.util.Description;
+import br.unifor.mia.serin.util.RDF;
 
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
@@ -31,13 +32,14 @@ public class ClientSample {
 		model.getDocumentManager().addAltEntry(Serin.NS, urlSerin);
 		model.read(ontology.openStream(), null);
 
-		serin = new SerinClient(URL_HOST, URI_ONTOLOGY, ontology.toString());
-
-		// CRIA UM INDIVIDUO --> 207
 		Individual peugeout207 = model.createIndividual(Veiculo.NS + "207", Veiculo.VEICULO);
 		peugeout207.setPropertyValue(Veiculo.MARCA, model.createLiteral("Peugeot"));
 		peugeout207.setPropertyValue(Veiculo.MODELO, model.createLiteral("207"));
+
+		// CRIA CLIENTE SERIN
+		serin = new SerinClient(URL_HOST, URI_ONTOLOGY);
 		
+		// PUT --> 207
 		boolean isCreated = serin.put(peugeout207);
 
 		if (isCreated) {
@@ -47,25 +49,20 @@ public class ClientSample {
 			System.out.println("Individuo NÃO criado: " + peugeout207);
 		}
 
-		// CRIA UM INDIVIDUO --> Logan
-		Individual logan = model.createIndividual(Veiculo.NS + "Logan", Veiculo.VEICULO);
-		logan.setPropertyValue(Veiculo.MARCA, model.createLiteral("Renault"));
-		logan.setPropertyValue(Veiculo.MODELO, model.createLiteral("Logan"));
+		// GET --> Logan
+		Description logan = serin.get(Veiculo.VEICULO, "Logan");
+		System.out.println("Individuo obtido: " + logan);
 		
-		isCreated = serin.put(logan);
+		// POST --> 207
+		peugeout207.removeAll(Veiculo.MODELO);
+		peugeout207.setPropertyValue(Veiculo.MODELO, model.createLiteral("208"));
+		serin.post(peugeout207);
 
-		if (isCreated) {
-			System.out.println("Individuo criado: " + logan);
-			model.write(System.out, "RDF/XML-ABBREV");	
-		} else {
-			System.out.println("Individuo NÃO criado: " + logan);
-		}
-		
-		// RECUPERA TODOS OS VEICULOS (com anotação LIST)
-		List<Individual> lista = serin.list(Veiculo.VEICULO);
-		System.out.println("Lista de Individuos: " + lista);
+		// LIST
+		RDF rdf = serin.list(Veiculo.VEICULO);
+		System.out.println("Lista de Individuos: " + rdf.getDescriptions());
 
-		// DELETA UM INDIVIDUO --> Logan
+		// DELETE --> Logan
 		boolean isDeleted = serin.delete(Veiculo.VEICULO, "Logan");
 		if (isDeleted) {
 			System.out.println("Individuo deletado: "+ Veiculo.NS +"Logan");
