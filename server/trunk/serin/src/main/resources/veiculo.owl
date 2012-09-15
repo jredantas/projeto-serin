@@ -25,6 +25,11 @@
 	<owl:DatatypeProperty rdf:ID="marca">
 		<rdfs:domain rdf:resource="#Veiculo" />
 		<rdfs:range rdf:resource="&xsd;string" />
+		<serin:put/>
+		<serin:get/>
+		<serin:post/>
+		<serin:list/>
+		<serin:delete/>
 	</owl:DatatypeProperty>
 
 	<!-- Propriedade modelo
@@ -32,6 +37,11 @@
 	<owl:DatatypeProperty rdf:ID="modelo">
 		<rdfs:domain rdf:resource="#Veiculo" />
 		<rdfs:range rdf:resource="&xsd;string" />
+		<serin:put/>
+		<serin:get/>
+		<serin:post/>
+		<serin:list/>
+		<serin:delete/>
 	</owl:DatatypeProperty>
 
 	<!-- http://www.unifor.br/ontologies/Veiculo.owl#Veiculo -->

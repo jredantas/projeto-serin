@@ -29,13 +29,19 @@ import br.unifor.mia.serin.util.Description;
 import br.unifor.mia.serin.util.OntologyConverter;
 
 import com.hp.hpl.jena.ontology.Individual;
-import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.ontology.OntResource;
+import com.hp.hpl.jena.query.QueryExecution;
+import com.hp.hpl.jena.query.QueryExecutionFactory;
+import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;
+import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.update.UpdateAction;
 import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
@@ -64,9 +70,9 @@ public class VeiculosResource {
 		}
 	}
 	
-	private boolean hasSerinAnnotation(String classURI, String serinAnotationURI) {
+	private boolean hasSerinAnnotation(String resourceURI, String serinAnotationURI) {
 		
-		if (classURI == null) {
+		if (resourceURI == null) {
 			return false;
 		}
 
@@ -74,14 +80,14 @@ public class VeiculosResource {
 			return false;
 		}
 
-		OntClass ontClass = model.getOntClass(classURI);
+		OntResource resource = model.getOntResource(resourceURI);
 		Property serinAnot = model.getProperty(serinAnotationURI);
 		
-		if (ontClass.getProperty(serinAnot) == null) {
+		if (resource.getProperty(serinAnot) == null) {
 			return false;
 		}
 
-		Property anotation = ontClass.getProperty(serinAnot).getPredicate();
+		Property anotation = resource.getProperty(serinAnot).getPredicate();
 	
 		if (GET.equals(anotation) || PUT.equals(anotation) ||
 			POST.equals(anotation) || DELETE.equals(anotation)||
@@ -92,13 +98,13 @@ public class VeiculosResource {
 		return false;
 	}
 	
-	@PUT
+	@POST
 	@Consumes(MediaType.TEXT_XML)
-	public Response putVeiculo(String rdfXml) {
+	public Response postIndividual(String rdfXml) {
 		
 		Description individual = OntologyConverter.toObject(rdfXml).getDescriptions().get(0);
 		
-		if (!hasSerinAnnotation(individual.getType(), PUT.getURI())) {
+		if (!hasSerinAnnotation(individual.getType(), POST.getURI())) {
 			return Response.status(Status.NOT_ACCEPTABLE).build();
 		}
 		
@@ -121,12 +127,12 @@ public class VeiculosResource {
     	return Response.status(Status.CREATED).build();
 	}
 	
-    @POST
+	@PUT
     @Path("{rdfID}")
 	@Consumes(MediaType.TEXT_XML)
-	public Response postVeiculo(@PathParam("ontClass") String ontClass, @PathParam("rdfID") String rdfID, String rdfXml) {
+	public Response putIndividual(@PathParam("ontClass") String ontClass, @PathParam("rdfID") String rdfID, String rdfXml) {
 
-		if (!hasSerinAnnotation(Veiculo.NS + ontClass, POST.toString())) {
+		if (!hasSerinAnnotation(Veiculo.NS + ontClass, PUT.toString())) {
 			return Response.status(Status.NOT_ACCEPTABLE).build();
 		}
 		
@@ -156,7 +162,7 @@ public class VeiculosResource {
     
     @DELETE
     @Path("{rdfID}")
-    public Response deleteVeiculo(@PathParam("ontClass") String ontClass, @PathParam("rdfID")String rdfID) {
+    public Response deleteIndividual(@PathParam("ontClass") String ontClass, @PathParam("rdfID")String rdfID) {
     	
 		if (!hasSerinAnnotation(Veiculo.NS + ontClass, DELETE.toString())) {
 			return Response.status(Status.NOT_ACCEPTABLE).build();
@@ -170,10 +176,10 @@ public class VeiculosResource {
 
     	return Response.status(Status.OK).build();
     }
-	
+
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	public Response listVeiculo(@PathParam("ontClass") String ontClass) {
+	public Response listIndividual(@PathParam("ontClass") String ontClass) {
 
 		if (!hasSerinAnnotation(Veiculo.NS + ontClass, LIST.toString())) {
 			return Response.status(Status.NOT_ACCEPTABLE).build();
@@ -189,6 +195,10 @@ public class VeiculosResource {
         	individuals.add(list.next());
         }
         
+		if (individuals.isEmpty()) {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+        
 		try {
 			
 			String result = OntologyConverter.toRDFXML(individuals.toArray(new Individual[individuals.size()]));
@@ -203,22 +213,54 @@ public class VeiculosResource {
 		}
 	}
 	
+	/**
+	 * Trabalha tanto como "lIST Property" como "GET Individual"
+	 * 
+	 * @param ontClass
+	 *            Classe a que o resource pertence.
+	 * @param resourceID
+	 *            identificação do resource, pode ser um individuo como uma
+	 *            propriedade.
+	 * @return
+	 */
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	@Path("{rdfID}")
-	public Response getVeiculo(@PathParam("ontClass") String ontClass, @PathParam("rdfID")String rdfID) {
-		
-		if (!hasSerinAnnotation(Veiculo.NS + ontClass, GET.toString())) {
-			return Response.status(Status.NOT_ACCEPTABLE).build();
+	@Path("{resourceID}")
+	public Response getResource(@PathParam("ontClass") String ontClass, @PathParam("resourceID")String resourceID) {
+	
+		OntResource resource = model.getOntResource(Veiculo.NS + resourceID);
+	
+		if (resource == null) {
+			return Response.status(Status.NOT_FOUND).build();
 		}
 		
-		Individual individual = model.getIndividual(Veiculo.NS + rdfID);
-
+		if (resource.isProperty()) {
+			if (!hasSerinAnnotation(resource.getURI(), GET.toString())) {
+				return Response.status(Status.NOT_FOUND).build();
+			}
+		} else {
+			if (!hasSerinAnnotation(Veiculo.NS + ontClass, GET.toString())) {
+				return Response.status(Status.NOT_FOUND).build();
+			}	
+		}
+	
 		try {
-			
-			String result = OntologyConverter.toRDFXML(individual);
-			return Response.ok(result).build();
-			
+			if (resource.isIndividual()) {
+				String result = OntologyConverter.toRDFXML(resource.as(Individual.class));
+				return Response.ok(result).build();				
+			} else {
+				
+				String sparql = "select * where {?subject <"+resource.getURI()+"> ?object}";				
+				QueryExecution qexec = QueryExecutionFactory.create(sparql, model);
+				
+				try {
+		        	ResultSet rs = qexec.execSelect();
+		        	return Response.ok(ResultSetFormatter.asXMLString(rs)).build();
+		        } finally {
+		        	qexec.close();
+		        }
+			}
+	
 		} catch (XMLStreamException e) {
 			e.printStackTrace();
 			return Response.serverError().build();
@@ -227,4 +269,115 @@ public class VeiculosResource {
 			return Response.serverError().build();
 		}
 	}
+
+	@POST
+	@Path("{rdfID}/{ontProperty}/{value}")
+	@Consumes(MediaType.TEXT_XML)
+	public Response postProperty(@PathParam("ontClass") String ontClass,
+			@PathParam("rdfID") String rdfID, @PathParam("ontProperty") String ontProperty,
+			@PathParam("value") String value) {
+		
+		if (!hasSerinAnnotation(Veiculo.NS + ontProperty, POST.getURI())) {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+		
+		String insertString = "INSERT DATA {";
+		insertString += "<"+Veiculo.NS + rdfID+"> <"+Veiculo.NS + ontProperty+"> \""+value+"\".}";	
+		
+    	UpdateRequest request = UpdateFactory.create(insertString);
+    	
+    	UpdateAction.execute(request, model);
+
+    	return Response.status(Status.CREATED).build();
+	}
+
+	@PUT
+	@Path("{rdfID}/{ontProperty}/{value}")
+	@Consumes(MediaType.TEXT_XML)
+	public Response putProperty(@PathParam("ontClass") String ontClass,
+			@PathParam("rdfID") String rdfID, @PathParam("ontProperty") String ontProperty,
+			@PathParam("value") String oldValue, String newValue) {
+		
+		if (!hasSerinAnnotation(Veiculo.NS + ontProperty, PUT.getURI())) {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+		
+		StmtIterator stmtIterator = model.getIndividual(Veiculo.NS + rdfID)
+				.listProperties(model.getProperty(Veiculo.NS + ontProperty));
+		
+		Statement statement = null;
+		boolean find = false;
+		while (stmtIterator.hasNext()) {
+			 statement = stmtIterator.next();
+			 if (statement.getObject().toString().equals(oldValue)) {
+				 find = true;
+				 break;
+			 }
+		}
+		if (statement != null & find) {
+			statement.changeObject(newValue);
+		} else {
+			Response.status(Status.NOT_FOUND).build();
+		}
+		
+    	return Response.ok().build();
+	}
+
+	@GET
+	@Path("{rdfID}/{ontProperty}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response getProperty(@PathParam("ontClass") String ontClass,
+			@PathParam("ontProperty") String ontProperty,
+			@PathParam("rdfID") String rdfID) {
+
+		if (!hasSerinAnnotation(Veiculo.NS + ontProperty, GET.toString())) {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+		
+		Individual individual = model.getIndividual(Veiculo.NS + rdfID);
+	
+		if (individual == null) {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+
+		StmtIterator stmtIterator = individual.listProperties(model.getProperty(Veiculo.NS + ontProperty));
+		String result = "";
+		
+		while (stmtIterator.hasNext()) {
+			 Statement statement = stmtIterator.next();
+			 result += statement.getObject().toString() + ";";
+		}
+
+		return Response.ok(result).build();
+	}
+
+	/**
+	 * Método DELETE ALL
+	 * 
+	 * @param ontClass
+	 * @param rdfID
+	 * @param ontProperty
+	 * @return
+	 */
+	@DELETE
+	@Path("{rdfID}/{ontProperty}")
+	public Response deleteProperty(@PathParam("ontClass") String ontClass,
+			@PathParam("rdfID") String rdfID, @PathParam("ontProperty") String ontProperty) {
+		
+		// TODO [Implementar DELETE ONE]
+		if (!hasSerinAnnotation(Veiculo.NS + ontProperty, DELETE.toString())) {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+		
+    	String uriID = Veiculo.NS + rdfID;
+    	String predURI = Veiculo.NS + ontProperty;
+    	
+    	String deleteString = "DELETE WHERE {<"+uriID+"> <"+ predURI +"> ?o}";
+    	
+    	UpdateRequest request = UpdateFactory.create(deleteString);
+    	UpdateAction.execute(request, model);
+
+    	return Response.status(Status.OK).build();
+		
+	}	
 }

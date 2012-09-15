@@ -39,8 +39,8 @@ public class ClientSample {
 		// CRIA CLIENTE SERIN
 		serin = new SerinClient(URL_HOST, URI_ONTOLOGY);
 		
-		// PUT --> 207
-		boolean isCreated = serin.put(peugeout207);
+		// POST --> Adiciona o veiculo Peugeot 207
+		boolean isCreated = serin.post(peugeout207);
 
 		if (isCreated) {
 			System.out.println("Individuo criado: " + peugeout207);
@@ -49,20 +49,20 @@ public class ClientSample {
 			System.out.println("Individuo NÃO criado: " + peugeout207);
 		}
 
-		// GET --> Logan
+		// GET --> Obtém o veiculo Renault Logan
 		Description logan = serin.get(Veiculo.VEICULO, "Logan");
 		System.out.println("Individuo obtido: " + logan);
 		
-		// POST --> 207
+		// PUT --> Atualiza o veiculo Peugeot 207
 		peugeout207.removeAll(Veiculo.MODELO);
 		peugeout207.setPropertyValue(Veiculo.MODELO, model.createLiteral("208"));
-		serin.post(peugeout207);
+		serin.put(peugeout207);
 
-		// LIST
+		// LIST --> Obtém uma lista de todos os veiculos
 		RDF rdf = serin.list(Veiculo.VEICULO);
 		System.out.println("Lista de Individuos: " + rdf.getDescriptions());
 
-		// DELETE --> Logan
+		// DELETE --> Deleta o veiculo Renault Logan
 		boolean isDeleted = serin.delete(Veiculo.VEICULO, "Logan");
 		if (isDeleted) {
 			System.out.println("Individuo deletado: "+ Veiculo.NS +"Logan");

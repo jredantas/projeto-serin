@@ -23,7 +23,8 @@ import com.hp.hpl.jena.ontology.OntClass;
  * • Anotações não podem ser herdadas, ou seja, a classe-filha deve especificar os
  *   serviços web correspondentes.
  *   
- * @author Hermano
+ * @author Hermano A. Lira
+ * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
  */
 public class SerinClient {
 	
@@ -40,7 +41,7 @@ public class SerinClient {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean put(Individual individual) throws Exception{
+	public boolean post(Individual individual) throws Exception{
 		
 		String rdfXml = OntologyConverter.toRDFXML(individual);
 		
@@ -51,24 +52,31 @@ public class SerinClient {
 
 		request.body(MediaType.TEXT_XML, rdfXml);
 
-		ClientResponse<String> response = request.put(String.class);
+		ClientResponse<String> response = request.post(String.class);
 
 		return response.getResponseStatus().equals(Status.CREATED);
 	}
 
-	public boolean post(Individual individual) throws Exception {
+	/**
+	 * Método que atualiza um individuo na ontologia.
+	 * 
+	 * @param individual
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean put(Individual individual) throws Exception {
 
 		String rdfXml = OntologyConverter.toRDFXML(individual);
 		
-		String urlSerinClass =
+		String urlSerinIndividual =
 				urlActiveOntology +"/"+ individual.getOntClass().getLocalName() + "/" + individual.getURI().split("#")[1];
 	
 		System.out.println("Invocando serviço web de atualização...");
-		ClientRequest request = new ClientRequest(urlSerinClass);
+		ClientRequest request = new ClientRequest(urlSerinIndividual);
 
 		request.body(MediaType.TEXT_XML, rdfXml);
 
-		ClientResponse<String> response = request.post(String.class);
+		ClientResponse<String> response = request.put(String.class);
 
 		return response.getResponseStatus().equals(Status.CREATED);
 		
