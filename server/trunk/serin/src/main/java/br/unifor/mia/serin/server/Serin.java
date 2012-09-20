@@ -23,7 +23,7 @@ public class Serin {
 	 * The namespace of the vocabulary as a string
 	 * </p>
 	 */
-	public static final String NS = "http://www.unifor.br/serin.owl#";
+	public static final String NS = "http://www.activeontology.com.br/serin.owl#";
 
 	/**
 	 * <p>
@@ -44,18 +44,18 @@ public class Serin {
 	public static final Resource NAMESPACE = m_model.createResource(NS);
 
 	public static final AnnotationProperty DELETE = m_model
-			.createAnnotationProperty("http://www.unifor.br/serin.owl#delete");
+			.createAnnotationProperty("http://www.activeontology.com.br/serin.owl#delete");
 
 	public static final AnnotationProperty GET = m_model
-			.createAnnotationProperty("http://www.unifor.br/serin.owl#get");
+			.createAnnotationProperty("http://www.activeontology.com.br/serin.owl#get");
 
 	public static final AnnotationProperty LIST = m_model
-			.createAnnotationProperty("http://www.unifor.br/serin.owl#list");
+			.createAnnotationProperty("http://www.activeontology.com.br/serin.owl#list");
 
 	public static final AnnotationProperty POST = m_model
-			.createAnnotationProperty("http://www.unifor.br/serin.owl#post");
+			.createAnnotationProperty("http://www.activeontology.com.br/serin.owl#post");
 
 	public static final AnnotationProperty PUT = m_model
-			.createAnnotationProperty("http://www.unifor.br/serin.owl#put");
+			.createAnnotationProperty("http://www.activeontology.com.br/serin.owl#put");
 
 }

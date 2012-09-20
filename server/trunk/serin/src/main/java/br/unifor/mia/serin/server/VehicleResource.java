@@ -48,25 +48,23 @@ import com.hp.hpl.jena.update.UpdateRequest;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 import com.hp.hpl.jena.vocabulary.RDF;
 
-@Path("/www.unifor.br/veiculo.owl/{ontClass}")
+@Path("/www.unifor.br/vehicle.owl/{ontClass}")
 @Consumes(MediaType.TEXT_XML)
-public class VeiculosResource {
+public class VehicleResource {
 
 	private static OntModel model;
 	
-	public VeiculosResource() {
+	public VehicleResource() {
 		
 		if (model == null) {
-			String urlSerin = getClass().getClassLoader().getResource("serin.owl").toString().replace("vfs:", "file://");
-			InputStream inVeiculo = getClass().getClassLoader().getResourceAsStream("veiculo.owl");
+			InputStream inVeiculo = getClass().getClassLoader().getResourceAsStream("vehicle.owl");
 			
 			model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-			model.getDocumentManager().addAltEntry(Serin.NS, urlSerin);
 			model.read(inVeiculo, null);
 			
-			Individual individuo = model.createIndividual("http://www.unifor.br/veiculo.owl#Logan", Veiculo.VEICULO);
-			individuo.setPropertyValue(Veiculo.MARCA, model.createLiteral("Renault"));
-			individuo.setPropertyValue(Veiculo.MODELO, model.createLiteral("Logan"));
+			Individual individuo = model.createIndividual("http://www.unifor.br/vehicle.owl#Logan", Vehicle.VEHICLE);
+			individuo.setPropertyValue(Vehicle.BRAND, model.createLiteral("Renault"));
+			individuo.setPropertyValue(Vehicle.MODEL, model.createLiteral("Logan"));
 		}
 	}
 	
@@ -82,6 +80,10 @@ public class VeiculosResource {
 
 		OntResource resource = model.getOntResource(resourceURI);
 		Property serinAnot = model.getProperty(serinAnotationURI);
+		
+		if (resource == null) {
+			return false;
+		}
 		
 		if (resource.getProperty(serinAnot) == null) {
 			return false;
@@ -132,13 +134,13 @@ public class VeiculosResource {
 	@Consumes(MediaType.TEXT_XML)
 	public Response putIndividual(@PathParam("ontClass") String ontClass, @PathParam("rdfID") String rdfID, String rdfXml) {
 
-		if (!hasSerinAnnotation(Veiculo.NS + ontClass, PUT.toString())) {
+		if (!hasSerinAnnotation(Vehicle.NS + ontClass, PUT.toString())) {
 			return Response.status(Status.NOT_ACCEPTABLE).build();
 		}
 		
 		HashMap<String, String> properties = OntologyConverter.toObject(rdfXml).getDescriptions().get(0).getProperties();
     	
-		String uriID = Veiculo.NS + rdfID;
+		String uriID = Vehicle.NS + rdfID;
     	
 		for (String property : properties.keySet()) {
 			String deletePartString = "DELETE {<"+uriID+"> <"+ property +"> ?o}";
@@ -164,11 +166,11 @@ public class VeiculosResource {
     @Path("{rdfID}")
     public Response deleteIndividual(@PathParam("ontClass") String ontClass, @PathParam("rdfID")String rdfID) {
     	
-		if (!hasSerinAnnotation(Veiculo.NS + ontClass, DELETE.toString())) {
+		if (!hasSerinAnnotation(Vehicle.NS + ontClass, DELETE.toString())) {
 			return Response.status(Status.NOT_ACCEPTABLE).build();
 		}
 		
-    	String uriID = Veiculo.NS + rdfID;
+    	String uriID = Vehicle.NS + rdfID;
     	String deleteString = "DELETE WHERE {<"+uriID+"> ?p ?o}";
     	
     	UpdateRequest request = UpdateFactory.create(deleteString);
@@ -181,11 +183,11 @@ public class VeiculosResource {
 	@Produces(MediaType.TEXT_XML)
 	public Response listIndividual(@PathParam("ontClass") String ontClass) {
 
-		if (!hasSerinAnnotation(Veiculo.NS + ontClass, LIST.toString())) {
+		if (!hasSerinAnnotation(Vehicle.NS + ontClass, LIST.toString())) {
 			return Response.status(Status.NOT_ACCEPTABLE).build();
 		}
 
-        Resource cls = ResourceFactory.createResource(Veiculo.NS + ontClass);
+        Resource cls = ResourceFactory.createResource(Vehicle.NS + ontClass);
 
         ExtendedIterator<Individual> list = model.listIndividuals(cls);
 
@@ -228,7 +230,7 @@ public class VeiculosResource {
 	@Path("{resourceID}")
 	public Response getResource(@PathParam("ontClass") String ontClass, @PathParam("resourceID")String resourceID) {
 	
-		OntResource resource = model.getOntResource(Veiculo.NS + resourceID);
+		OntResource resource = model.getOntResource(Vehicle.NS + resourceID);
 	
 		if (resource == null) {
 			return Response.status(Status.NOT_FOUND).build();
@@ -239,7 +241,7 @@ public class VeiculosResource {
 				return Response.status(Status.NOT_FOUND).build();
 			}
 		} else {
-			if (!hasSerinAnnotation(Veiculo.NS + ontClass, GET.toString())) {
+			if (!hasSerinAnnotation(Vehicle.NS + ontClass, GET.toString())) {
 				return Response.status(Status.NOT_FOUND).build();
 			}	
 		}
@@ -277,12 +279,12 @@ public class VeiculosResource {
 			@PathParam("rdfID") String rdfID, @PathParam("ontProperty") String ontProperty,
 			@PathParam("value") String value) {
 		
-		if (!hasSerinAnnotation(Veiculo.NS + ontProperty, POST.getURI())) {
+		if (!hasSerinAnnotation(Vehicle.NS + ontProperty, POST.getURI())) {
 			return Response.status(Status.NOT_FOUND).build();
 		}
 		
 		String insertString = "INSERT DATA {";
-		insertString += "<"+Veiculo.NS + rdfID+"> <"+Veiculo.NS + ontProperty+"> \""+value+"\".}";	
+		insertString += "<"+Vehicle.NS + rdfID+"> <"+Vehicle.NS + ontProperty+"> \""+value+"\".}";	
 		
     	UpdateRequest request = UpdateFactory.create(insertString);
     	
@@ -298,12 +300,12 @@ public class VeiculosResource {
 			@PathParam("rdfID") String rdfID, @PathParam("ontProperty") String ontProperty,
 			@PathParam("value") String oldValue, String newValue) {
 		
-		if (!hasSerinAnnotation(Veiculo.NS + ontProperty, PUT.getURI())) {
+		if (!hasSerinAnnotation(Vehicle.NS + ontProperty, PUT.getURI())) {
 			return Response.status(Status.NOT_FOUND).build();
 		}
 		
-		StmtIterator stmtIterator = model.getIndividual(Veiculo.NS + rdfID)
-				.listProperties(model.getProperty(Veiculo.NS + ontProperty));
+		StmtIterator stmtIterator = model.getIndividual(Vehicle.NS + rdfID)
+				.listProperties(model.getProperty(Vehicle.NS + ontProperty));
 		
 		Statement statement = null;
 		boolean find = false;
@@ -330,17 +332,17 @@ public class VeiculosResource {
 			@PathParam("ontProperty") String ontProperty,
 			@PathParam("rdfID") String rdfID) {
 
-		if (!hasSerinAnnotation(Veiculo.NS + ontProperty, GET.toString())) {
+		if (!hasSerinAnnotation(Vehicle.NS + ontProperty, GET.toString())) {
 			return Response.status(Status.NOT_FOUND).build();
 		}
 		
-		Individual individual = model.getIndividual(Veiculo.NS + rdfID);
+		Individual individual = model.getIndividual(Vehicle.NS + rdfID);
 	
 		if (individual == null) {
 			return Response.status(Status.NOT_FOUND).build();
 		}
 
-		StmtIterator stmtIterator = individual.listProperties(model.getProperty(Veiculo.NS + ontProperty));
+		StmtIterator stmtIterator = individual.listProperties(model.getProperty(Vehicle.NS + ontProperty));
 		String result = "";
 		
 		while (stmtIterator.hasNext()) {
@@ -361,16 +363,15 @@ public class VeiculosResource {
 	 */
 	@DELETE
 	@Path("{rdfID}/{ontProperty}")
-	public Response deleteProperty(@PathParam("ontClass") String ontClass,
+	public Response deleteAllProperty(@PathParam("ontClass") String ontClass,
 			@PathParam("rdfID") String rdfID, @PathParam("ontProperty") String ontProperty) {
 		
-		// TODO [Implementar DELETE ONE]
-		if (!hasSerinAnnotation(Veiculo.NS + ontProperty, DELETE.toString())) {
+		if (!hasSerinAnnotation(Vehicle.NS + ontProperty, DELETE.toString())) {
 			return Response.status(Status.NOT_FOUND).build();
 		}
 		
-    	String uriID = Veiculo.NS + rdfID;
-    	String predURI = Veiculo.NS + ontProperty;
+    	String uriID = Vehicle.NS + rdfID;
+    	String predURI = Vehicle.NS + ontProperty;
     	
     	String deleteString = "DELETE WHERE {<"+uriID+"> <"+ predURI +"> ?o}";
     	
@@ -380,4 +381,33 @@ public class VeiculosResource {
     	return Response.status(Status.OK).build();
 		
 	}	
+	
+	/**
+	 * Método DELETE ONE
+	 * 
+	 * @param ontClass
+	 * @param rdfID
+	 * @param ontProperty
+	 * @return
+	 */
+	@DELETE
+	@Path("{rdfID}/{ontProperty}/{value}")
+	public Response deleteOneProperty(@PathParam("ontClass") String ontClass,
+			@PathParam("rdfID") String rdfID, @PathParam("ontProperty") String ontProperty,
+			@PathParam("value") String value) {
+
+		if (!hasSerinAnnotation(Vehicle.NS + ontProperty, DELETE.toString())) {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+		
+    	String uriID = Vehicle.NS + rdfID;
+    	String predURI = Vehicle.NS + ontProperty;
+    	
+    	String deleteString = "DELETE WHERE {<"+uriID+"> <"+ predURI +"> \""+ value +"\"}";
+    	
+    	UpdateRequest request = UpdateFactory.create(deleteString);
+    	UpdateAction.execute(request, model);
+
+    	return Response.status(Status.OK).build();
+	}
 }

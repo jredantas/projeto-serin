@@ -4,8 +4,8 @@
     <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
     <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
     <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
-    <!ENTITY serin "http://www.unifor.br/serin.owl#" >
-    <!ENTITY location "http://www.unifor.br/veiculo.owl" >
+    <!ENTITY serin "http://www.activeontology.com.br/serin.owl#" >
+    <!ENTITY location "http://www.unifor.br/vehicle.owl" >
 ]>
 <rdf:RDF
 	xmlns:xsd="&xsd;"
@@ -20,10 +20,10 @@
 		<owl:imports rdf:resource="&serin;" />
 	</owl:Ontology>
 
-	<!-- Propriedade marca
-	 (http://www.unifor.br/ontologies/Veiculo.owl#marca) -->
-	<owl:DatatypeProperty rdf:ID="marca">
-		<rdfs:domain rdf:resource="#Veiculo" />
+	<!-- Brand Property
+	 (http://www.unifor.br/ontologies/Vehicle.owl#brand) -->
+	<owl:DatatypeProperty rdf:ID="brand">
+		<rdfs:domain rdf:resource="#Vehicle" />
 		<rdfs:range rdf:resource="&xsd;string" />
 		<serin:put/>
 		<serin:get/>
@@ -32,10 +32,10 @@
 		<serin:delete/>
 	</owl:DatatypeProperty>
 
-	<!-- Propriedade modelo
-	 (http://www.unifor.br/ontologies/Veiculo.owl#modelo) -->
-	<owl:DatatypeProperty rdf:ID="modelo">
-		<rdfs:domain rdf:resource="#Veiculo" />
+	<!-- Model Property
+	 (http://www.unifor.br/ontologies/Vehicle.owl#model) -->
+	<owl:DatatypeProperty rdf:ID="model">
+		<rdfs:domain rdf:resource="#Vehicle" />
 		<rdfs:range rdf:resource="&xsd;string" />
 		<serin:put/>
 		<serin:get/>
@@ -44,8 +44,8 @@
 		<serin:delete/>
 	</owl:DatatypeProperty>
 
-	<!-- http://www.unifor.br/ontologies/Veiculo.owl#Veiculo -->
-	<owl:Class rdf:ID="Veiculo">
+	<!-- http://www.unifor.br/ontologies/Vehicle.owl#Vehicle -->
+	<owl:Class rdf:ID="Vehicle">
 		<serin:put/>
 		<serin:get/>
 		<serin:post/>
