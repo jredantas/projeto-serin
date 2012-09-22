@@ -1,6 +1,7 @@
 package br.unifor.mia.serin.client;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -8,9 +9,7 @@ import javax.ws.rs.core.Response.Status;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
 
-import br.unifor.mia.serin.util.Description;
 import br.unifor.mia.serin.util.OntologyConverter;
-import br.unifor.mia.serin.util.RDF;
 
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntClass;
@@ -50,7 +49,7 @@ public class SerinClient {
 		System.out.println("Invocando serviço web de inserção...");
 		ClientRequest request = new ClientRequest(urlSerinClass);
 
-		request.body(MediaType.TEXT_XML, rdfXml);
+		request.body(MediaType.APPLICATION_XML, rdfXml);
 
 		ClientResponse<String> response = request.post(String.class);
 
@@ -74,7 +73,7 @@ public class SerinClient {
 		System.out.println("Invocando serviço web de atualização...");
 		ClientRequest request = new ClientRequest(urlSerinIndividual);
 
-		request.body(MediaType.TEXT_XML, rdfXml);
+		request.body(MediaType.APPLICATION_XML, rdfXml);
 
 		ClientResponse<String> response = request.put(String.class);
 
@@ -105,7 +104,7 @@ public class SerinClient {
 		}
 	}
 
-	public Description get(OntClass ontClass, String rdfID) throws Exception {
+	public Individual get(OntClass ontClass, String rdfID) throws Exception {
 		
 		String urlSerinIndividual = urlActiveOntology +"/"+ ontClass.getLocalName() + "/" + rdfID;
 
@@ -118,9 +117,9 @@ public class SerinClient {
 
 			String rdfXml = (String) response.getEntity();
 
-			RDF rdf = OntologyConverter.toObject(rdfXml);
+			List<Individual> individuals = OntologyConverter.toObject(ontClass, rdfXml);
 
-			return rdf.getDescriptions().size() > 0 ? rdf.getDescriptions().get(0) : null;
+			return individuals.size() > 0 ? individuals.get(0) : null;
 		}
 		return null;
 	}
@@ -132,7 +131,7 @@ public class SerinClient {
 	 * @return
 	 * @throws Exception
 	 */
-	public RDF list(OntClass ontClass) throws Exception {
+	public List<Individual> list(OntClass ontClass) throws Exception {
 
 		String urlSerinClass = urlActiveOntology +"/"+ ontClass.getLocalName();
 		
@@ -145,7 +144,7 @@ public class SerinClient {
 
 			String rdfXml = (String) response.getEntity();
 
-			return OntologyConverter.toObject(rdfXml);
+			return OntologyConverter.toObject(ontClass, rdfXml);
 		}
 
 		return null;

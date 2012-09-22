@@ -21,8 +21,8 @@
 	</owl:Ontology>
 
 	<!-- Brand Property
-	 (http://www.unifor.br/ontologies/Vehicle.owl#brand) -->
-	<owl:DatatypeProperty rdf:ID="brand">
+	 (http://www.unifor.br/Vehicle.owl#brand) -->
+	<owl:FunctionalProperty rdf:ID="brand">
 		<rdfs:domain rdf:resource="#Vehicle" />
 		<rdfs:range rdf:resource="&xsd;string" />
 		<serin:put/>
@@ -30,11 +30,11 @@
 		<serin:post/>
 		<serin:list/>
 		<serin:delete/>
-	</owl:DatatypeProperty>
+	</owl:FunctionalProperty>
 
 	<!-- Model Property
-	 (http://www.unifor.br/ontologies/Vehicle.owl#model) -->
-	<owl:DatatypeProperty rdf:ID="model">
+	 (http://www.unifor.br/Vehicle.owl#model) -->
+	<owl:FunctionalProperty rdf:ID="model">
 		<rdfs:domain rdf:resource="#Vehicle" />
 		<rdfs:range rdf:resource="&xsd;string" />
 		<serin:put/>
@@ -42,9 +42,9 @@
 		<serin:post/>
 		<serin:list/>
 		<serin:delete/>
-	</owl:DatatypeProperty>
+	</owl:FunctionalProperty>
 
-	<!-- http://www.unifor.br/ontologies/Vehicle.owl#Vehicle -->
+	<!-- http://www.unifor.br/Vehicle.owl#Vehicle -->
 	<owl:Class rdf:ID="Vehicle">
 		<serin:put/>
 		<serin:get/>
