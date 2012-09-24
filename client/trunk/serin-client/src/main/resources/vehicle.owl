@@ -1,55 +1,75 @@
 <?xml version="1.0"?>
-<!DOCTYPE rdf:RDF [
-    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
-    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
-    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
-    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
-    <!ENTITY serin "http://www.activeontology.com.br/serin.owl#" >
-    <!ENTITY location "http://www.unifor.br/vehicle.owl" >
-]>
-<rdf:RDF
-	xmlns:xsd="&xsd;"
-	xmlns:rdfs="&rdfs;"
-	xmlns:rdf="&rdf;"
-	xmlns:owl="&owl;"
- 	xmlns:serin="&serin;"
- 	xmlns:vel="&location;#"
-	xml:base="&location;">
+<rdf:RDF xmlns="http://www.unifor.br/vehicle.owl#"
+     xml:base="http://www.unifor.br/vehicle.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:serin="http://www.activeontology.com.br/serin.owl#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
-	<owl:Ontology rdf:about="&location;">
-		<owl:imports rdf:resource="&serin;" />
-	</owl:Ontology>
+    <owl:Ontology rdf:about="http://www.unifor.br/vehicle.owl">
+        <rdfs:comment>Example Active Ontology</rdfs:comment>
+        <owl:imports rdf:resource="http://www.activeontology.com.br/serin.owl#"/>
+    </owl:Ontology>
 
-	<!-- Brand Property
-	 (http://www.unifor.br/Vehicle.owl#brand) -->
-	<owl:FunctionalProperty rdf:ID="brand">
-		<rdfs:domain rdf:resource="#Vehicle" />
-		<rdfs:range rdf:resource="&xsd;string" />
-		<serin:put/>
-		<serin:get/>
-		<serin:post/>
-		<serin:list/>
-		<serin:delete/>
-	</owl:FunctionalProperty>
+    <!-- http://www.unifor.br/vehicle.owl#isMadeBy -->
+    <owl:FunctionalProperty rdf:about="http://www.unifor.br/vehicle.owl#isMadeBy">
+        <rdfs:domain rdf:resource="http://www.unifor.br/vehicle.owl#Vehicle"/>
+        <rdfs:range rdf:resource="http://www.unifor.br/vehicle.owl#Manufacturer"/>
+        <serin:delete/>
+        <serin:put/>
+        <serin:list/>
+        <serin:post/>
+        <serin:get/>
+    </owl:FunctionalProperty>
 
-	<!-- Model Property
-	 (http://www.unifor.br/Vehicle.owl#model) -->
-	<owl:FunctionalProperty rdf:ID="model">
-		<rdfs:domain rdf:resource="#Vehicle" />
-		<rdfs:range rdf:resource="&xsd;string" />
-		<serin:put/>
-		<serin:get/>
-		<serin:post/>
-		<serin:list/>
-		<serin:delete/>
-	</owl:FunctionalProperty>
+    <!-- http://www.unifor.br/vehicle.owl#name -->
+    <owl:FunctionalProperty rdf:about="http://www.unifor.br/vehicle.owl#name">
+        <rdfs:domain rdf:resource="http://www.unifor.br/vehicle.owl#Manufacturer"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <serin:delete/>
+        <serin:put/>
+        <serin:list/>
+        <serin:post/>
+        <serin:get/>
+    </owl:FunctionalProperty>
 
-	<!-- http://www.unifor.br/Vehicle.owl#Vehicle -->
-	<owl:Class rdf:ID="Vehicle">
-		<serin:put/>
-		<serin:get/>
-		<serin:post/>
-		<serin:list/>
-		<serin:delete/>
-	</owl:Class>
+    <!-- http://www.unifor.br/vehicle.owl#model -->
+    <owl:FunctionalProperty rdf:about="http://www.unifor.br/vehicle.owl#model">
+        <rdfs:domain rdf:resource="http://www.unifor.br/vehicle.owl#Vehicle"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <serin:put/>
+        <serin:post/>
+        <serin:delete/>
+        <serin:list/>
+        <serin:get/>
+    </owl:FunctionalProperty>
+
+    <!-- http://www.unifor.br/vehicle.owl#year -->
+    <owl:FunctionalProperty rdf:about="http://www.unifor.br/vehicle.owl#year">
+        <rdfs:domain rdf:resource="http://www.unifor.br/vehicle.owl#Vehicle"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+        <serin:post/>
+        <serin:delete/>
+        <serin:put/>
+        <serin:get/>
+        <serin:list/>
+    </owl:FunctionalProperty>
+
+    <!-- http://www.unifor.br/vehicle.owl#Manufacturer -->
+    <owl:Class rdf:about="http://www.unifor.br/vehicle.owl#Manufacturer">
+        <serin:list/>
+        <serin:get/>
+        <serin:post/>
+        <serin:put/>
+        <serin:delete/>
+    </owl:Class>
+
+    <!-- http://www.unifor.br/vehicle.owl#Vehicle -->
+    <owl:Class rdf:about="http://www.unifor.br/vehicle.owl#Vehicle">
+        <serin:list/>
+        <serin:get/>
+        <serin:post/>
+        <serin:put/>
+        <serin:delete/>
+    </owl:Class>
 </rdf:RDF>

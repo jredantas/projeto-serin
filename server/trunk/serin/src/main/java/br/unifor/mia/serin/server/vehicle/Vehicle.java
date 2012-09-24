@@ -1,5 +1,5 @@
 /* CVS $Id: $ */
-package br.unifor.mia.serin.server;
+package br.unifor.mia.serin.server.vehicle;
 
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.ontology.*;
