@@ -30,7 +30,7 @@ public class SerinClient {
 	private String urlActiveOntology;
 
 	public SerinClient(String urlHost, String uriOntology) throws IOException {
-		this.urlActiveOntology = urlHost + "/serin/" + uriOntology;	
+		this.urlActiveOntology = urlHost + "/" + uriOntology;	
 	}
 
 	/**

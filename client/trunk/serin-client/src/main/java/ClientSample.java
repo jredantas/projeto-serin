@@ -10,7 +10,7 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 
 public class ClientSample {
 
-	private static final String URL_HOST = "http://localhost:8080";
+	private static final String URL_HOST = "http://localhost:8080/serin";
 	
 	private static final String URI_ONTOLOGY = "www.unifor.br/vehicle.owl";
 	
@@ -27,7 +27,7 @@ public class ClientSample {
 		model.read(ontology.openStream(), null);
 
 		Individual peugeout207 = model.createIndividual(Vehicle.NS + "207", Vehicle.VEHICLE);
-		peugeout207.setPropertyValue(Vehicle.BRAND, model.createTypedLiteral("Peugeot"));
+		peugeout207.setPropertyValue(Vehicle.YEAR, model.createTypedLiteral(2010));
 		peugeout207.setPropertyValue(Vehicle.MODEL, model.createTypedLiteral("207"));
 		
 		// CRIA CLIENTE SERIN

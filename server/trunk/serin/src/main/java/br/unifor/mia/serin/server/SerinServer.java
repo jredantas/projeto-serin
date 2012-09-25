@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -14,14 +15,13 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import br.unifor.mia.serin.util.OntologyConverter;
 
-import com.hp.hpl.jena.datatypes.RDFDatatype;
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntProperty;
@@ -35,6 +35,7 @@ import com.hp.hpl.jena.sparql.util.NodeFactory;
 import com.hp.hpl.jena.update.UpdateAction;
 import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
+import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
 @Consumes(MediaType.APPLICATION_XML)
@@ -50,6 +51,11 @@ public abstract class SerinServer {
 	 * 
 	 */
 	private static final String RESOURCE_NOT_FOUND = "<SERIN>RESOURCE NOT FOUND</SERIN>";
+
+	/**
+	 * 
+	 */
+	private static final Object NOT_MEMBERSHIP = "<SERIN>RESOURCE NOT MEMBERSHIP OF CLASS</SERIN>";
 
 	/**
 	 * 
@@ -122,7 +128,7 @@ public abstract class SerinServer {
 	@GET
 	@Path("{ontClass}/{resourceID}")
 	public Response getResource(@PathParam("ontClass") String ontClass,
-			@PathParam("resourceID") String resourceID) {
+			@PathParam("resourceID") String resourceID, @QueryParam("fetch") String fetch) {
 	
 		OntResource resource = model.getOntResource(namespace() + resourceID);
 	
@@ -133,7 +139,7 @@ public abstract class SerinServer {
 		if (resource.isProperty()) {
 			return listProperty(ontClass, resource.asProperty());
 		} else {
-			return getIndividual(ontClass, resource.asIndividual());
+			return getIndividual(ontClass, resource.asIndividual(), fetch);
 		}
 	}
 
@@ -181,14 +187,29 @@ public abstract class SerinServer {
 	 * @param individual
 	 * @return
 	 */
-	private Response getIndividual(String ontClass, Individual individual) {
+	private Response getIndividual(String ontClass, Individual individual, String fetch) {
 	
+		if (!model.contains(individual, RDF.type, model.getOntClass(namespace() + ontClass))) {
+			return Response.status(Status.BAD_REQUEST).entity(NOT_MEMBERSHIP).build();
+		}
+		
 		if (!hasSerinAnnotation(namespace() + ontClass, Serin.GET)) {
 			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
 		}
 	
+		List<Individual> individuals = new ArrayList<Individual>();
+		if ("eager".equals(fetch)) {
+			for (Statement prop : individual.listProperties().toList()) {
+				if (prop.getPredicate().as(OntProperty.class).isObjectProperty()) {
+					individuals.add(prop.getObject().as(Individual.class));
+				}
+			}
+		}
+		
 		try {
-			String result = OntologyConverter.toRDFXML(individual);
+			individuals.add(individual);
+			Individual[] array = new Individual[individuals.size()];
+			String result = OntologyConverter.toRDFXML(individuals.toArray(array));
 			return Response.ok(result).build();
 		} catch (IOException e) {
 			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
@@ -279,7 +300,7 @@ public abstract class SerinServer {
 		}
 	
 		for (Statement stmt : properties) {
-			individual.addProperty(stmt.getPredicate(), stmt.getObject());
+			individual.setPropertyValue(stmt.getPredicate(), stmt.getObject());
 		}
 	
 		return Response.status(Status.CREATED).build();

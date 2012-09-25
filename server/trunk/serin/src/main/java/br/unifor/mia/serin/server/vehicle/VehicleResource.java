@@ -6,6 +6,7 @@ import javax.ws.rs.Path;
 
 import br.unifor.mia.serin.server.SerinServer;
 
+import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 
 @Path("/www.unifor.br/vehicle.owl")
@@ -27,9 +28,13 @@ public final class VehicleResource extends SerinServer {
 			setModel(ModelFactory.createOntologyModel());
 			getModel().read(inVeiculo, null);
 			
-			/*Individual individuo = getModel().createIndividual(NS+"Logan", Vehicle.VEHICLE);
-			individuo.setPropertyValue(Vehicle.BRAND, getModel().createTypedLiteral("Renault"));
-			individuo.setPropertyValue(Vehicle.MODEL, getModel().createTypedLiteral("Logan"));*/
+			Individual renault = getModel().createIndividual(NS+"Renault", Vehicle.MANUFACTURER);
+			renault.setPropertyValue(Vehicle.NAME, getModel().createTypedLiteral("Renault Motors"));
+
+			Individual logan = getModel().createIndividual(NS+"Logan", Vehicle.VEHICLE);
+			logan.setPropertyValue(Vehicle.YEAR, getModel().createTypedLiteral(2012));
+			logan.setPropertyValue(Vehicle.MODEL, getModel().createTypedLiteral("Logan"));
+			logan.setPropertyValue(Vehicle.isMadeBy, renault);
 		}
 	}
 

@@ -15,7 +15,7 @@ public class Vehicle {
 	 * The ontology model that holds the vocabulary terms
 	 * </p>
 	 */
-	private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
+	private static OntModel m_model = ModelFactory.createOntologyModel();
 
 	/**
 	 * <p>
@@ -42,9 +42,15 @@ public class Vehicle {
 	 */
 	public static final Resource NAMESPACE = m_model.createResource(NS);
 
-	public static final DatatypeProperty BRAND = m_model.createDatatypeProperty("http://www.unifor.br/vehicle.owl#brand");
+	public static final DatatypeProperty isMadeBy = m_model.createDatatypeProperty(NS+"isMadeBy", true);
 
-	public static final DatatypeProperty MODEL = m_model.createDatatypeProperty("http://www.unifor.br/vehicle.owl#model");
+	public static final DatatypeProperty MODEL = m_model.createDatatypeProperty(NS+"model", true);
+	
+	public static final DatatypeProperty NAME = m_model.createDatatypeProperty(NS+"name", true);
 
-	public static final OntClass VEHICLE = m_model.createClass("http://www.unifor.br/vehicle.owl#Vehicle");
+	public static final DatatypeProperty YEAR = m_model.createDatatypeProperty(NS+"year", true);
+	
+	public static final OntClass VEHICLE = m_model.createClass(NS+"Vehicle");
+
+	public static final OntClass MANUFACTURER = m_model.createClass(NS+"Manufacturer");
 }
