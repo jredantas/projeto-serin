@@ -32,7 +32,6 @@
         <serin:put></serin:put>
         <serin:post></serin:post>
         <serin:delete></serin:delete>
-        <serin:list></serin:list>
         <serin:get></serin:get>
         <rdfs:domain rdf:resource="http://www.unifor.br/vehicle.owl#Vehicle"/>
         <rdfs:range rdf:resource="&xsd;string"/>
@@ -43,7 +42,6 @@
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <serin:post></serin:post>
         <serin:delete></serin:delete>
-        <serin:list></serin:list>
         <serin:get></serin:get>
         <serin:put></serin:put>
         <rdfs:domain rdf:resource="http://www.unifor.br/vehicle.owl#Manufacturer"/>
@@ -57,14 +55,12 @@
         <serin:delete></serin:delete>
         <serin:put></serin:put>
         <serin:get></serin:get>
-        <serin:list></serin:list>
         <rdfs:domain rdf:resource="http://www.unifor.br/vehicle.owl#Vehicle"/>
         <rdfs:range rdf:resource="&xsd;int"/>
     </owl:DatatypeProperty>
 
     <!-- http://www.unifor.br/vehicle.owl#Manufacturer -->
     <owl:Class rdf:about="http://www.unifor.br/vehicle.owl#Manufacturer">
-        <serin:list></serin:list>
         <serin:delete></serin:delete>
         <serin:post></serin:post>
         <serin:put></serin:put>
@@ -73,7 +69,6 @@
 
     <!-- http://www.unifor.br/vehicle.owl#Vehicle -->
     <owl:Class rdf:about="http://www.unifor.br/vehicle.owl#Vehicle">
-        <serin:list></serin:list>
         <serin:get></serin:get>
         <serin:post></serin:post>
         <serin:put></serin:put>
