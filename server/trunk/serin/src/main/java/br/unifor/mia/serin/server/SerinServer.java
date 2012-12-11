@@ -69,12 +69,11 @@ public abstract class SerinServer {
 	 */
 	protected abstract String namespace();
 
-
 	/**
 	 * 
 	 */
 	private static OntModel model;
-	
+
 	/**
 	 * 
 	 * @return
@@ -82,7 +81,7 @@ public abstract class SerinServer {
 	public OntModel getModel() {
 		return model;
 	}
-	
+
 	/**
 	 * 
 	 * @param model
@@ -90,7 +89,7 @@ public abstract class SerinServer {
 	public static void setModel(OntModel _model) {
 		model = _model;
 	}
-	
+
 	/**
 	 * 
 	 * @return
@@ -98,20 +97,22 @@ public abstract class SerinServer {
 	 */
 	@GET
 	public String getOntology() throws IOException {
-	
-		InputStream inVeiculo = getClass().getClassLoader().getResourceAsStream(getOntologyFileName());
-	
-		BufferedReader stream = new BufferedReader(new InputStreamReader(inVeiculo));
-	
+
+		InputStream inVeiculo = getClass().getClassLoader()
+				.getResourceAsStream(getOntologyFileName());
+
+		BufferedReader stream = new BufferedReader(new InputStreamReader(
+				inVeiculo));
+
 		StringBuilder ontology = new StringBuilder();
-	
+
 		String currentLine = stream.readLine();
-	
+
 		while (currentLine != null) {
 			ontology.append(currentLine);
 			currentLine = stream.readLine();
 		}
-	
+
 		return ontology.toString();
 	}
 
@@ -128,14 +129,16 @@ public abstract class SerinServer {
 	@GET
 	@Path("{ontClass}/{resourceID}")
 	public Response getResource(@PathParam("ontClass") String ontClass,
-			@PathParam("resourceID") String resourceID, @QueryParam("fetch") String fetch) {
-	
+			@PathParam("resourceID") String resourceID,
+			@QueryParam("fetch") String fetch) {
+
 		OntResource resource = model.getOntResource(namespace() + resourceID);
-	
+
 		if (resource == null) {
-			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
+			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND)
+					.build();
 		}
-	
+
 		if (resource.isProperty()) {
 			return listProperty(ontClass, resource.asProperty());
 		} else {
@@ -150,7 +153,8 @@ public abstract class SerinServer {
 	 * @param serinAnotationURI
 	 * @return
 	 */
-	private boolean hasSerinAnnotation(String resourceURI, String serinAnotationURI) {
+	private boolean hasSerinAnnotation(String resourceURI,
+			String serinAnotationURI) {
 
 		if (resourceURI == null) {
 			return false;
@@ -187,32 +191,39 @@ public abstract class SerinServer {
 	 * @param individual
 	 * @return
 	 */
-	private Response getIndividual(String ontClass, Individual individual, String fetch) {
-	
-		if (!model.contains(individual, RDF.type, model.getOntClass(namespace() + ontClass))) {
-			return Response.status(Status.BAD_REQUEST).entity(NOT_MEMBERSHIP).build();
+	private Response getIndividual(String ontClass, Individual individual,
+			String fetch) {
+
+		if (!model.contains(individual, RDF.type,
+				model.getOntClass(namespace() + ontClass))) {
+			return Response.status(Status.BAD_REQUEST).entity(NOT_MEMBERSHIP)
+					.build();
 		}
-		
+
 		if (!hasSerinAnnotation(namespace() + ontClass, Serin.GET)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity(SERIN_NOT_AVAILABLE).build();
 		}
-	
+
 		List<Individual> individuals = new ArrayList<Individual>();
 		if ("eager".equals(fetch)) {
 			for (Statement prop : individual.listProperties().toList()) {
-				if (prop.getPredicate().as(OntProperty.class).isObjectProperty()) {
+				if (prop.getPredicate().as(OntProperty.class)
+						.isObjectProperty()) {
 					individuals.add(prop.getObject().as(Individual.class));
 				}
 			}
 		}
-		
+
 		try {
 			individuals.add(individual);
 			Individual[] array = new Individual[individuals.size()];
-			String result = OntologyConverter.toRDFXML(individuals.toArray(array));
+			String result = OntologyConverter.toRDFXML(individuals
+					.toArray(array));
 			return Response.ok(result).build();
 		} catch (IOException e) {
-			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
+			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND)
+					.build();
 		}
 	}
 
@@ -224,21 +235,24 @@ public abstract class SerinServer {
 	@GET
 	@Path("{ontClass}")
 	public Response listIndividual(@PathParam("ontClass") String ontClass) {
-	
-		if (!hasSerinAnnotation(namespace() + ontClass, Serin.LIST)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+
+		if (!hasSerinAnnotation(namespace() + ontClass, Serin.GET)) {
+			return Response.status(Status.BAD_REQUEST)
+					.entity(SERIN_NOT_AVAILABLE).build();
 		}
-	
+
 		Resource cls = ResourceFactory.createResource(namespace() + ontClass);
-	
+
 		List<Individual> individuals = model.listIndividuals(cls).toList();
-	
+
 		if (individuals.isEmpty()) {
-			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
+			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND)
+					.build();
 		}
-	
+
 		try {
-			String result = OntologyConverter.toRDFXML(individuals.toArray(new Individual[individuals.size()]));
+			String result = OntologyConverter.toRDFXML(individuals
+					.toArray(new Individual[individuals.size()]));
 			return Response.ok(result).build();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -254,20 +268,22 @@ public abstract class SerinServer {
 	 */
 	@POST
 	@Path("{ontClass}")
-	public Response postIndividual(@PathParam("ontClass") String ontClass, String rdfXml) {
-	
+	public Response postIndividual(@PathParam("ontClass") String ontClass,
+			String rdfXml) {
+
 		Resource cls = model.getResource(namespace() + ontClass);
-	
+
 		Individual individual = OntologyConverter.toObject(cls, rdfXml).get(0);
-	
+
 		if (!hasSerinAnnotation(individual.getRDFType().getURI(), Serin.POST)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity(SERIN_NOT_AVAILABLE).build();
 		}
-	
+
 		for (Statement stmt : individual.listProperties().toList()) {
 			model.add(stmt);
 		}
-	
+
 		return Response.status(Status.CREATED).build();
 	}
 
@@ -282,27 +298,29 @@ public abstract class SerinServer {
 	@Path("{ontClass}/{rdfID}")
 	public Response putIndividual(@PathParam("ontClass") String ontClass,
 			@PathParam("rdfID") String rdfID, String rdfXml) {
-	
+
 		if (!hasSerinAnnotation(namespace() + ontClass, Serin.PUT)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity(SERIN_NOT_AVAILABLE).build();
 		}
-	
+
 		Resource cls = model.getResource(namespace() + ontClass);
-	
-		List<Statement> properties = OntologyConverter.toObject(cls, rdfXml).get(0).listProperties().toList();
-	
+
+		List<Statement> properties = OntologyConverter.toObject(cls, rdfXml)
+				.get(0).listProperties().toList();
+
 		String uriID = namespace() + rdfID;
-	
+
 		Individual individual = model.getIndividual(uriID);
-	
+
 		if (individual == null) {
 			individual = model.createIndividual(uriID, cls);
 		}
-	
+
 		for (Statement stmt : properties) {
 			individual.setPropertyValue(stmt.getPredicate(), stmt.getObject());
 		}
-	
+
 		return Response.status(Status.CREATED).build();
 	}
 
@@ -316,17 +334,18 @@ public abstract class SerinServer {
 	@Path("{ontClass}/{rdfID}")
 	public Response deleteIndividual(@PathParam("ontClass") String ontClass,
 			@PathParam("rdfID") String rdfID) {
-	
+
 		if (!hasSerinAnnotation(namespace() + ontClass, Serin.DELETE)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity(SERIN_NOT_AVAILABLE).build();
 		}
-	
+
 		String uriID = namespace() + rdfID;
 		String deleteString = "DELETE WHERE {<" + uriID + "> ?p ?o}";
-	
+
 		UpdateRequest request = UpdateFactory.create(deleteString);
 		UpdateAction.execute(request, model);
-	
+
 		return Response.status(Status.OK).build();
 	}
 
@@ -340,21 +359,26 @@ public abstract class SerinServer {
 	@GET
 	@Path("{ontClass}/{rdfID}/{ontProperty}")
 	public Response getProperty(@PathParam("ontClass") String ontClass,
-			@PathParam("ontProperty") String ontProperty, @PathParam("rdfID") String rdfID) {
-	
+			@PathParam("ontProperty") String ontProperty,
+			@PathParam("rdfID") String rdfID) {
+
 		if (!hasSerinAnnotation(namespace() + ontProperty, Serin.GET)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity(SERIN_NOT_AVAILABLE).build();
 		}
-	
+
 		Individual individual = model.getIndividual(namespace() + rdfID);
-	
+
 		if (individual == null) {
-			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
+			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND)
+					.build();
 		}
-	
-		List<Statement> statements = individual.listProperties(model.getProperty(namespace() + ontProperty)).toList();
-	
-		return Response.ok(new RDFOutput(model.getNsPrefixMap(), statements)).build();
+
+		List<Statement> statements = individual.listProperties(
+				model.getProperty(namespace() + ontProperty)).toList();
+
+		return Response.ok(new RDFOutput(model.getNsPrefixMap(), statements))
+				.build();
 	}
 
 	/**
@@ -365,13 +389,16 @@ public abstract class SerinServer {
 	 * @return
 	 */
 	private Response listProperty(String ontClass, OntProperty ontProperty) {
-	
+
 		if (!hasSerinAnnotation(ontProperty.getURI(), Serin.GET)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity(SERIN_NOT_AVAILABLE).build();
 		}
-	
-		List<Statement> statements = model.listStatements((Resource) null, ontProperty, (RDFNode) null).toList();
-		return Response.ok(new RDFOutput(model.getNsPrefixMap(), statements)).build();
+
+		List<Statement> statements = model.listStatements((Resource) null,
+				ontProperty, (RDFNode) null).toList();
+		return Response.ok(new RDFOutput(model.getNsPrefixMap(), statements))
+				.build();
 	}
 
 	/**
@@ -385,18 +412,21 @@ public abstract class SerinServer {
 	@POST
 	@Path("{ontClass}/{rdfID}/{ontProperty}/{value}")
 	public Response postProperty(@PathParam("ontClass") String ontClass,
-			@PathParam("rdfID") String rdfID, @PathParam("ontProperty") String ontProperty,
+			@PathParam("rdfID") String rdfID,
+			@PathParam("ontProperty") String ontProperty,
 			@PathParam("value") String value) {
-	
+
 		if (!hasSerinAnnotation(namespace() + ontProperty, Serin.POST)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity(SERIN_NOT_AVAILABLE).build();
 		}
-	
+
 		Resource subject = model.getResource(namespace() + rdfID);
-		Property predicate = model.getProperty(namespace() + ontProperty);	
-		Resource datatype = predicate.getPropertyResourceValue(RDFS.range);	
-		RDFNode object = model.asRDFNode(NodeFactory.createLiteralNode(value, null, datatype.getURI()));
-		
+		Property predicate = model.getProperty(namespace() + ontProperty);
+		Resource datatype = predicate.getPropertyResourceValue(RDFS.range);
+		RDFNode object = model.asRDFNode(NodeFactory.createLiteralNode(value,
+				null, datatype.getURI()));
+
 		model.add(subject, predicate, object);
 
 		return Response.status(Status.CREATED).build();
@@ -417,25 +447,29 @@ public abstract class SerinServer {
 			@PathParam("rdfID") String rdfID,
 			@PathParam("ontProperty") String ontProperty,
 			@PathParam("value") String oldValue, String newValue) {
-	
+
 		if (!hasSerinAnnotation(namespace() + ontProperty, Serin.PUT)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity(SERIN_NOT_AVAILABLE).build();
 		}
-	
+
 		List<Statement> statements = model.getIndividual(namespace() + rdfID)
-				.listProperties(model.getProperty(namespace() + ontProperty)).toList();
-	
+				.listProperties(model.getProperty(namespace() + ontProperty))
+				.toList();
+
 		boolean find = false;
 		for (Statement stmt : statements) {
 			if (stmt.getObject().asNode().getLiteralValue().equals(oldValue)) {
-				stmt.changeObject(model.asRDFNode(NodeFactory.createLiteralNode(newValue, null, stmt.getObject()
+				stmt.changeObject(model.asRDFNode(NodeFactory
+						.createLiteralNode(newValue, null, stmt.getObject()
 								.asNode().getLiteralDatatypeURI())));
 				find = true;
 				break;
 			}
 		}
-	
-		return find ? Response.ok().build() : Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
+
+		return find ? Response.ok().build() : Response.status(Status.NOT_FOUND)
+				.entity(RESOURCE_NOT_FOUND).build();
 	}
 
 	/**
@@ -449,21 +483,24 @@ public abstract class SerinServer {
 	@DELETE
 	@Path("{ontClass}/{rdfID}/{ontProperty}/{value}")
 	public Response deleteOneProperty(@PathParam("ontClass") String ontClass,
-			@PathParam("rdfID") String rdfID, @PathParam("ontProperty") String ontProperty,
+			@PathParam("rdfID") String rdfID,
+			@PathParam("ontProperty") String ontProperty,
 			@PathParam("value") String value) {
-	
+
 		if (!hasSerinAnnotation(namespace() + ontProperty, Serin.DELETE)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity(SERIN_NOT_AVAILABLE).build();
 		}
-	
+
 		String uriID = namespace() + rdfID;
 		String predURI = namespace() + ontProperty;
-	
-		String deleteString = "DELETE WHERE {<" + uriID + "> <" + predURI + "> \"" + value + "\"}";
-	
+
+		String deleteString = "DELETE WHERE {<" + uriID + "> <" + predURI
+				+ "> \"" + value + "\"}";
+
 		UpdateRequest request = UpdateFactory.create(deleteString);
 		UpdateAction.execute(request, model);
-	
+
 		return Response.status(Status.OK).build();
 	}
 
@@ -482,13 +519,15 @@ public abstract class SerinServer {
 			@PathParam("ontProperty") String ontProperty) {
 
 		if (!hasSerinAnnotation(namespace() + ontProperty, Serin.DELETE)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity(SERIN_NOT_AVAILABLE).build();
 		}
 
 		String uriID = namespace() + rdfID;
 		String predURI = namespace() + ontProperty;
 
-		String deleteString = "DELETE WHERE {<" + uriID + "> <" + predURI + "> ?o}";
+		String deleteString = "DELETE WHERE {<" + uriID + "> <" + predURI
+				+ "> ?o}";
 
 		UpdateRequest request = UpdateFactory.create(deleteString);
 		UpdateAction.execute(request, model);
