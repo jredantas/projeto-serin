@@ -1,14 +1,15 @@
 package br.unifor.mia.serin.server.clinic;
 
-import java.io.InputStream;
+import java.io.IOException;
 
 import javax.ws.rs.Path;
 
-import br.unifor.mia.serin.server.SerinServer;
-import br.unifor.mia.serin.server.clinic.Clinic;
+import com.hp.hpl.jena.update.UpdateAction;
+import com.hp.hpl.jena.update.UpdateFactory;
+import com.hp.hpl.jena.update.UpdateRequest;
 
-import com.hp.hpl.jena.ontology.Individual;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
+import br.unifor.mia.serin.server.SerinServer;
+import br.unifor.mia.serin.util.FileUtil;
 
 @Path("/www.unifor.br/clinic.owl")
 public final class ClinicResource extends SerinServer {
@@ -18,41 +19,12 @@ public final class ClinicResource extends SerinServer {
 	 */
 	private final String NS = "http://www.unifor.br/clinic.owl#";
 
-	/**
-	 * 
-	 */
-	public ClinicResource() {
+	public ClinicResource() throws IOException {
 
-		if (getModel() == null) {
-			InputStream inClinic = getClass().getClassLoader()
-					.getResourceAsStream(getOntologyFileName());
+		String insertString = FileUtil.getContent("CLINIC_INSERT_DATA.txt");
 
-			setModel(ModelFactory.createOntologyModel());
-			getModel().read(inClinic, null);
-
-			// Criando as especialidades...
-			Individual specialty = getModel().createIndividual(
-					NS + "Cardiology", Clinic.SPECIALTY);
-			specialty.setPropertyValue(Clinic.DESCRIPTION, getModel()
-					.createTypedLiteral("Cardiology"));
-
-			// Criando os doutores...
-			Individual doctor = getModel().createIndividual(
-					NS + "Pedro_Porfirio", Clinic.DOCTOR);
-			doctor.setPropertyValue(Clinic.DOCTORNAME, getModel()
-					.createTypedLiteral("Pedro Porfirio"));
-			doctor.setPropertyValue(Clinic.isSpecializedIn, specialty);
-
-			// Criando as clinicas...
-			Individual clinic = getModel().createIndividual(
-					NS + "CARDIO_CLINIC", Clinic.CLINIC);
-			clinic.setPropertyValue(Clinic.CLINICNAME, getModel()
-					.createTypedLiteral("CARDIO CLINIC"));
-			clinic.setPropertyValue(Clinic.attendedBy, doctor);
-			clinic.setPropertyValue(Clinic.PHONENUMBER, getModel()
-					.createTypedLiteral("34596600"));
-
-		}
+		UpdateRequest request = UpdateFactory.create(insertString);
+		UpdateAction.execute(request, getModel());
 	}
 
 	@Override
@@ -64,5 +36,4 @@ public final class ClinicResource extends SerinServer {
 	protected String namespace() {
 		return NS;
 	}
-
 }

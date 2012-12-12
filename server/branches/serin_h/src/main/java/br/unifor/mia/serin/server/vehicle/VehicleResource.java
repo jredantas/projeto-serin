@@ -1,13 +1,15 @@
 package br.unifor.mia.serin.server.vehicle;
 
-import java.io.InputStream;
+import java.io.IOException;
 
 import javax.ws.rs.Path;
 
 import br.unifor.mia.serin.server.SerinServer;
+import br.unifor.mia.serin.util.FileUtil;
 
-import com.hp.hpl.jena.ontology.Individual;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.update.UpdateAction;
+import com.hp.hpl.jena.update.UpdateFactory;
+import com.hp.hpl.jena.update.UpdateRequest;
 
 @Path("/www.unifor.br/vehicle.owl")
 public final class VehicleResource extends SerinServer {
@@ -16,26 +18,13 @@ public final class VehicleResource extends SerinServer {
 	 * Vehicle Ontology URI.
 	 */
 	private final String NS = "http://www.unifor.br/vehicle.owl#";
-	
-	/**
-	 * 
-	 */
-	public VehicleResource() {
-		
-		if (getModel() == null) {
-			InputStream inVeiculo = getClass().getClassLoader().getResourceAsStream(getOntologyFileName());
-			
-			setModel(ModelFactory.createOntologyModel());
-			getModel().read(inVeiculo, null);
-			
-			Individual renault = getModel().createIndividual(NS+"Renault", Vehicle.MANUFACTURER);
-			renault.setPropertyValue(Vehicle.NAME, getModel().createTypedLiteral("Renault Motors"));
 
-			Individual logan = getModel().createIndividual(NS+"Logan", Vehicle.VEHICLE);
-			logan.setPropertyValue(Vehicle.YEAR, getModel().createTypedLiteral(2012));
-			logan.setPropertyValue(Vehicle.MODEL, getModel().createTypedLiteral("Logan"));
-			logan.setPropertyValue(Vehicle.isMadeBy, renault);
-		}
+	public VehicleResource() throws IOException {
+
+		String insertString = FileUtil.getContent("VEHICLE_INSERT_DATA.txt");
+
+		UpdateRequest request = UpdateFactory.create(insertString);
+		UpdateAction.execute(request, getModel());
 	}
 
 	@Override
@@ -47,6 +36,4 @@ public final class VehicleResource extends SerinServer {
 	protected String namespace() {
 		return NS;
 	}
-	
-
 }
