@@ -2,7 +2,6 @@ import java.net.URL;
 import java.util.List;
 
 import br.unifor.mia.serin.client.SerinClient;
-import br.unifor.mia.serin.server.vehicle.Vehicle;
 
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
