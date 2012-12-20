@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.ws.rs.Path;
 
+import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.update.UpdateAction;
 import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
@@ -11,7 +12,7 @@ import com.hp.hpl.jena.update.UpdateRequest;
 import br.unifor.mia.serin.server.SerinServer;
 import br.unifor.mia.serin.util.FileUtil;
 
-@Path("/www.unifor.br/clinic.owl")
+@Path("/clinic")
 public final class ClinicResource extends SerinServer {
 
 	/**
@@ -19,12 +20,15 @@ public final class ClinicResource extends SerinServer {
 	 */
 	private final String NS = "http://www.unifor.br/clinic.owl#";
 
+	private static int sequence = 4;
+	
 	public ClinicResource() throws IOException {
-
-		String insertString = FileUtil.getContent("CLINIC_INSERT_DATA.txt");
-
-		UpdateRequest request = UpdateFactory.create(insertString);
-		UpdateAction.execute(request, getModel());
+		if (modelEmpty) {
+			String insertString = FileUtil.getContent("CLINIC_INSERT_DATA.txt");
+			UpdateRequest request = UpdateFactory.create(insertString);
+			UpdateAction.execute(request, getModel());
+			modelEmpty = false;
+		}
 	}
 
 	@Override
@@ -35,5 +39,10 @@ public final class ClinicResource extends SerinServer {
 	@Override
 	protected String namespace() {
 		return NS;
+	}
+
+	@Override
+	protected String newSubjectURI(OntResource cls) {
+		return namespace() + sequence++;
 	}
 }

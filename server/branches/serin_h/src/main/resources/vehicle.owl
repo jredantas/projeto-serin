@@ -13,8 +13,9 @@
      xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-
+     
     <owl:Ontology rdf:about="http://www.unifor.br/vehicle.owl">
+        <serin:alias rdf:datatype="&xsd;string">vehicle</serin:alias>
         <rdfs:comment>Example Active Ontology</rdfs:comment>
         <owl:imports rdf:resource="http://www.activeontology.com.br/serin.owl#"/>
     </owl:Ontology>
@@ -29,11 +30,6 @@
     <!-- http://www.unifor.br/vehicle.owl#model -->
     <owl:DatatypeProperty rdf:about="http://www.unifor.br/vehicle.owl#model">
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
-        <serin:put></serin:put>
-        <serin:post></serin:post>
-        <serin:delete></serin:delete>
-        <serin:list></serin:list>
-        <serin:get></serin:get>
         <rdfs:domain rdf:resource="http://www.unifor.br/vehicle.owl#Vehicle"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -41,11 +37,6 @@
     <!-- http://www.unifor.br/vehicle.owl#name -->
     <owl:DatatypeProperty rdf:about="http://www.unifor.br/vehicle.owl#name">
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
-        <serin:post></serin:post>
-        <serin:delete></serin:delete>
-        <serin:list></serin:list>
-        <serin:get></serin:get>
-        <serin:put></serin:put>
         <rdfs:domain rdf:resource="http://www.unifor.br/vehicle.owl#Manufacturer"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -53,27 +44,28 @@
     <!-- http://www.unifor.br/vehicle.owl#year -->
     <owl:DatatypeProperty rdf:about="http://www.unifor.br/vehicle.owl#year">
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
-        <serin:post></serin:post>
-        <serin:delete></serin:delete>
-        <serin:put></serin:put>
-        <serin:get></serin:get>
-        <serin:list></serin:list>
         <rdfs:domain rdf:resource="http://www.unifor.br/vehicle.owl#Vehicle"/>
         <rdfs:range rdf:resource="&xsd;int"/>
     </owl:DatatypeProperty>
 
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
     <!-- http://www.unifor.br/vehicle.owl#Manufacturer -->
     <owl:Class rdf:about="http://www.unifor.br/vehicle.owl#Manufacturer">
-        <serin:list></serin:list>
         <serin:delete></serin:delete>
         <serin:post></serin:post>
         <serin:put></serin:put>
         <serin:get></serin:get>
     </owl:Class>
-
+    
     <!-- http://www.unifor.br/vehicle.owl#Vehicle -->
     <owl:Class rdf:about="http://www.unifor.br/vehicle.owl#Vehicle">
-        <serin:list></serin:list>
         <serin:get></serin:get>
         <serin:post></serin:post>
         <serin:put></serin:put>

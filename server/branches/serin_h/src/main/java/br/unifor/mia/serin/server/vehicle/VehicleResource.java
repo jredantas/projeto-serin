@@ -7,24 +7,28 @@ import javax.ws.rs.Path;
 import br.unifor.mia.serin.server.SerinServer;
 import br.unifor.mia.serin.util.FileUtil;
 
+import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.update.UpdateAction;
 import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
 
-@Path("/www.unifor.br/vehicle.owl")
+@Path("/vehicle")
 public final class VehicleResource extends SerinServer {
 	
 	/**
 	 * Vehicle Ontology URI.
 	 */
 	private final String NS = "http://www.unifor.br/vehicle.owl#";
-
+	
+	private static int sequence = 1;
+	
 	public VehicleResource() throws IOException {
-
-		String insertString = FileUtil.getContent("VEHICLE_INSERT_DATA.txt");
-
-		UpdateRequest request = UpdateFactory.create(insertString);
-		UpdateAction.execute(request, getModel());
+		if (modelEmpty) {
+			String insertString = FileUtil.getContent("VEHICLE_INSERT_DATA.txt");
+			UpdateRequest request = UpdateFactory.create(insertString);
+			UpdateAction.execute(request, getModel());	
+			modelEmpty = false;
+		}
 	}
 
 	@Override
@@ -35,5 +39,10 @@ public final class VehicleResource extends SerinServer {
 	@Override
 	protected String namespace() {
 		return NS;
+	}
+	
+	@Override
+	protected String newSubjectURI(OntResource cls) {
+		return namespace() + sequence++;
 	}
 }

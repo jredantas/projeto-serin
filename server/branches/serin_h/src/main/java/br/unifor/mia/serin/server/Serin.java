@@ -16,10 +16,9 @@ public final class Serin {
 
 	public static final String GET = "http://www.activeontology.com.br/serin.owl#get";
 
-	//public static final String LIST = "http://www.activeontology.com.br/serin.owl#list";
-
 	public static final String POST = "http://www.activeontology.com.br/serin.owl#post";
 
 	public static final String PUT = "http://www.activeontology.com.br/serin.owl#put";
-
+	
+	public static final String ALIAS = "http://www.activeontology.com.br/serin.owl#alias";
 }
