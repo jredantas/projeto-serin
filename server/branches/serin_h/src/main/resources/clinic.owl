@@ -73,7 +73,7 @@
     <owl:DatatypeProperty rdf:about="http://www.unifor.br/clinic.owl#phoneNumber">
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
     </owl:DatatypeProperty>
 
     <!-- 

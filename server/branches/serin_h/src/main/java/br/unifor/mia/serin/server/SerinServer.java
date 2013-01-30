@@ -17,8 +17,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 
 import br.unifor.mia.serin.util.FileUtil;
 import br.unifor.mia.serin.util.OntologyConverter;
@@ -59,8 +61,18 @@ public abstract class SerinServer {
 	 */
 	private static final Object NOT_MEMBERSHIP = "<SERIN>RESOURCE NOT MEMBERSHIP OF CLASS</SERIN>";
 
-	protected abstract String newSubjectURI(OntResource cls);
 
+	//private static int sequence = 4;
+	
+	/**
+	 * 
+	 * @param cls
+	 * @return
+	 */
+	private String newSubjectURI(OntResource cls) {
+		return URL_TEMPLATE + "/" + cls.getLocalName() + "/" + ontologyMap.get(getOntologyFileName()).sequence++;
+	}
+	
 	/**
 	 * 
 	 * @return
@@ -72,11 +84,22 @@ public abstract class SerinServer {
 	 * @return
 	 */
 	protected abstract String namespace();
+	
+	/**
+	 * 
+	 */
+	private static final String URL_TEMPLATE = "http://URI";
 
 	/**
 	 * 
 	 */
-	private static Map<String, OntModel> modelMap = new HashMap<String, OntModel>();
+	@Context
+	private UriInfo info;
+	
+	/**
+	 * 
+	 */
+	protected static Map<String, OntologySession> ontologyMap = new HashMap<String, OntologySession>();
 
 	/**
 	 * 
@@ -89,7 +112,7 @@ public abstract class SerinServer {
 	public SerinServer() {
 		if (getModel() == null) {
 			InputStream inOntology = getClass().getClassLoader().getResourceAsStream(getOntologyFileName());
-			modelMap.put(getOntologyFileName(),	ModelFactory.createOntologyModel());
+			ontologyMap.put(getOntologyFileName(), new OntologySession(ModelFactory.createOntologyModel()));
 			getModel().read(inOntology, null);
 			modelEmpty = true;
 		}
@@ -100,7 +123,8 @@ public abstract class SerinServer {
 	 * @return
 	 */
 	public OntModel getModel() {
-		return modelMap.get(getOntologyFileName());
+		return (ontologyMap.get(getOntologyFileName()) != null) ? ontologyMap
+				.get(getOntologyFileName()).getOntModel() : null;
 	}
 
 	/**
@@ -128,7 +152,7 @@ public abstract class SerinServer {
 	@Path("{ontClass}/{resourceID}")
 	public Response getResource(@PathParam("ontClass") String ontClass, @PathParam("resourceID") String resourceID,
 		@QueryParam("fetch") String fetch) {
-
+		
 		OntResource resource = lookup(resourceID);
 
 		if (resource == null) {
@@ -155,7 +179,7 @@ public abstract class SerinServer {
 			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
 		}
 
-		Resource cls = ResourceFactory.createResource(namespace() + ontClass);
+		Resource cls = lookup(ontClass);
 
 		List<Individual> individuals = getModel().listIndividuals(cls).toList();
 
@@ -165,10 +189,9 @@ public abstract class SerinServer {
 
 		try {
 			String result = OntologyConverter.toRDFXML(individuals.toArray(new Individual[individuals.size()]));
-			return Response.ok(result).build();
+			return Response.ok(decodeURLTemplate(result)).build();
 		} catch (IOException e) {
-			e.printStackTrace();
-			return Response.serverError().build();
+			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
 		}
 	}
 
@@ -202,7 +225,8 @@ public abstract class SerinServer {
 			individuals.add(individual);
 			Individual[] array = new Individual[individuals.size()];
 			String result = OntologyConverter.toRDFXML(individuals.toArray(array));
-			return Response.ok(result).build();
+
+			return Response.ok(decodeURLTemplate(result)).build();
 		} catch (IOException e) {
 			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
 		}
@@ -238,7 +262,7 @@ public abstract class SerinServer {
 			if (!stmt.isEmpty()) {
 				individualStatements.add(stmt.get(0));
 			} else {
-				return Response.status(Status.BAD_REQUEST).entity("Required fields not fulfill.").build();	
+				return Response.status(Status.BAD_REQUEST).entity("Required fields not fulfill.").build();
 			}
 		}
 
@@ -249,10 +273,16 @@ public abstract class SerinServer {
 			getModel().add(subject, statement.getPredicate(), statement.getObject());
 		}
 
-		return Response.status(Status.CREATED).build();
+		try {
+			String result = OntologyConverter.toRDFXML(lookup(subject.getURI()).asIndividual());
+			return Response.status(Status.CREATED).entity(decodeURLTemplate(result)).build();
+		} catch (IOException e) {
+			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
+		}		
 	}
 
 	/**
+	 * Insere e/ou atualiza propriedades de um individuo 'rdfID'.
 	 * 
 	 * @param ontClass
 	 * @param rdfID
@@ -263,13 +293,42 @@ public abstract class SerinServer {
 	@Path("{ontClass}/{rdfID}")
 	public Response putIndividual(@PathParam("ontClass") String ontClass, @PathParam("rdfID") String rdfID, String rdfXml) {
 	
-		List<Statement> statements = OntologyConverter.getStatements(rdfXml);
+		Individual ind = lookup(rdfID).asIndividual();
+		
+		List<Statement> statements = OntologyConverter.getStatements(encodeURLTemplate(rdfXml));
 		
 		for (Statement statement : statements) {
-			putProperty(ontClass, rdfID, statement.getPredicate().getLocalName(), rdfXml);
+			
+			String ontProperty = statement.getPredicate().getLocalName();
+			
+			if (!checkRelationship(ontClass, rdfID, ontProperty)) {
+				continue;
+			}
+
+			OntResource property = lookup(ontProperty);
+			
+			if (!hasSerinAnnotation(property, Serin.PUT)) {
+				continue;
+			}
+			
+			RDFNode newValue = OntologyConverter.getStatement(property.asProperty(), rdfXml).getObject();
+
+			Property prop  = property.asProperty();
+			
+			Statement indStmt = ind.getProperty(prop);
+			
+			if (indStmt != null) {
+				indStmt.changeObject(newValue);	
+			} else {
+				getModel().add(ind, prop, newValue);
+			}
 		}
-	
-		return Response.status(Status.CREATED).build();
+		try {
+			String result = decodeURLTemplate(OntologyConverter.toRDFXML(ind));
+			return Response.status(Status.CREATED).entity(result).build();
+		} catch (IOException e) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
 	}
 
 	/**
@@ -285,14 +344,13 @@ public abstract class SerinServer {
 		if (!hasSerinAnnotation(lookup(ontClass), Serin.DELETE)) {
 			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
 		}
-	
-		String uriID = namespace() + rdfID;
-		String deleteString = "DELETE WHERE {<" + uriID + "> ?p ?o}";
+
+		String deleteString = "DELETE WHERE {<" + lookup(rdfID).getURI() + "> ?p ?o}";
 	
 		UpdateRequest request = UpdateFactory.create(deleteString);
 		UpdateAction.execute(request, getModel());
 	
-		return Response.status(Status.OK).build();
+		return listIndividual(ontClass);
 	}
 
 	/**
@@ -302,6 +360,8 @@ public abstract class SerinServer {
 	 * @param ontProperty
 	 * @return
 	 */
+	// TODO [Hermano] Esse método ainda é necessário?
+	@Deprecated
 	private Response listProperty(String ontClass, OntProperty ontProperty) {
 	
 		if (!hasSerinAnnotation(ontProperty, Serin.GET)) {
@@ -319,6 +379,8 @@ public abstract class SerinServer {
 	 * @param rdfID
 	 * @return
 	 */
+	// TODO [Hermano] Esse método ainda é necessário?
+	@Deprecated
 	@GET
 	@Path("{ontClass}/{rdfID}/{ontProperty}")
 	public Response getProperty(@PathParam("ontClass") String ontClass,
@@ -344,52 +406,6 @@ public abstract class SerinServer {
 	}
 
 	/**
-	 * 
-	 * @param ontClass
-	 * @param rdfID
-	 * @param ontProperty
-	 * @param oldValue
-	 * @param newValue
-	 * @return
-	 */
-	@PUT
-	@Path("{ontClass}/{rdfID}/{ontProperty}")
-	public Response putProperty(@PathParam("ontClass") String ontClass, @PathParam("rdfID") String rdfID,
-			@PathParam("ontProperty") String ontProperty, String rdfXml) {
-
-		if (!checkRelationship(ontClass, rdfID, ontProperty)) {
-			return Response.status(Status.BAD_REQUEST).entity("Individual is not from class " + ontClass +
-					"or this class not domain the property " + ontProperty).build();
-		}
-		
-		Property property = lookup(ontProperty).asProperty();
-		
-		Statement stmt = OntologyConverter.getStatement(property, rdfXml);
-		
-		// Se não existe a propriedade 'ontProperty' dentro de rdfXml		
-		if (stmt == null) {
-			return Response.status(Status.NOT_FOUND).build();
-		}
-		
-		if (!hasSerinAnnotation(lookup(ontProperty), Serin.PUT)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
-		}
-
-		Individual ind = lookup(rdfID).asIndividual();
-		Property prop  = lookup(ontProperty).asProperty();
-		
-		Statement indStmt = ind.getProperty(prop);
-		
-		if (indStmt != null) {
-			indStmt.changeObject(stmt.getObject());	
-		} else {
-			getModel().add(ind, prop, stmt.getObject());
-		}
-
-		return Response.ok().build();
-	}
-
-	/**
 	 * Método DELETE
 	 * 
 	 * @param ontClass
@@ -397,6 +413,8 @@ public abstract class SerinServer {
 	 * @param ontProperty
 	 * @return
 	 */
+	// TODO [Hermano] Esse método ainda é necessário?
+	@Deprecated
 	@DELETE
 	@Path("{ontClass}/{rdfID}/{ontProperty}")
 	public Response deleteProperty(@PathParam("ontClass") String ontClass,
@@ -423,7 +441,9 @@ public abstract class SerinServer {
 	}
 
 	/**
-	 * 
+	 * Se resource for uma classe verifica se possui a anotação SERIN, caso seja
+	 * uma propriedade então verifica se sua classe de dominio possui a anotação
+	 * SERIN.
 	 * 
 	 * @param resourceURI
 	 * @param serinAnotationURI
@@ -442,7 +462,7 @@ public abstract class SerinServer {
 		Property serinAnot = getModel().getProperty(serinAnotationURI);
 
 		if (resource.getProperty(serinAnot) != null) {
-			return true;	
+			return true;
 		}
 	
 		if (resource.isProperty()) {
@@ -452,7 +472,7 @@ public abstract class SerinServer {
 			}
 		}
 	
-		return false;	
+		return false;
 	}
 
 	/**
@@ -469,17 +489,22 @@ public abstract class SerinServer {
 		return type.getLocalName().equals(ontClass);
 	}
 
+	/**
+	 * Verifica se a URL apresenta uma tripla 'ontClass'/'rdfID'/'ontProperty' válida.
+	 * 
+	 * @param ontClass
+	 * @param rdfID
+	 * @param ontProperty
+	 * @return
+	 */
 	private boolean checkRelationship(String ontClass, String rdfID, String ontProperty) {
 		
 		try {
-			Individual individual = lookup(rdfID).asIndividual();
-	    	Property property = lookup(ontProperty).asProperty();
+			boolean result = checkRelationship(ontClass, rdfID);
+			
+			Property property = lookup(ontProperty).asProperty();
 	    	OntClass clazz = lookup(ontClass).asClass();
 	    	
-	    	Resource type = individual.getRDFType(true);
-			
-			boolean result = type.getLocalName().equals(ontClass);
-			
 			result &= !getModel().listStatements(property, RDFS.domain, clazz).toList().isEmpty();
 			
 			return result;
@@ -490,7 +515,60 @@ public abstract class SerinServer {
 	}
 
 	private OntResource lookup(String ontResource) {
+
 		// TODO [Hermano] Implementar para procurar 'ontProperty' em todos os namespaces.
-		return getModel().getOntResource(namespace() + ontResource);
+		try {
+			// Tenta recuperar conceitos da ontologia
+			OntResource resource = getModel().getOntResource(namespace() + ontResource);
+			
+			/* Se 'ontResource' não é conceito da ontologia então tenta
+			 * recuperar como um individuo, onde a variável 'ontResource' é o
+			 * subjectURI (Ex. http://URI/<class>/<instanceID>)
+			 */ 
+			if (resource == null) {
+				resource = getModel().getOntResource(ontResource);	
+			}
+			
+			// Senão é subjectURI então tentar recuperar como 'instanceID'
+			if (resource == null) {
+				String base = info.getBaseUri().toString() + ontology();
+				String subjectURI = info.getAbsolutePath().toString().replace(base, URL_TEMPLATE);
+				
+				if (subjectURI.contains(ontResource)) {
+					resource = getModel().getOntResource(subjectURI);	
+				}
+			}
+			
+			return resource;
+			
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	private String ontology() {
+		return namespace().substring(7, namespace().length()-1);
+	}
+
+	/**
+	 * 
+	 * @param rdfXml
+	 * @return
+	 */
+	private String decodeURLTemplate(String rdfXml) {
+		return rdfXml.replace(URL_TEMPLATE, info.getBaseUri().toString() + ontology());
+	}
+	
+	/**
+	 * 
+	 * @param rdfXml
+	 * @return
+	 */
+	private String encodeURLTemplate(String rdfXml) {
+		return rdfXml.replace(info.getBaseUri().toString() + ontology(), URL_TEMPLATE);
 	}
 }
