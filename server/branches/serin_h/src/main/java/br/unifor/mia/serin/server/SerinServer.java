@@ -34,7 +34,6 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.update.UpdateAction;
 import com.hp.hpl.jena.update.UpdateFactory;
@@ -379,11 +378,10 @@ public abstract class SerinServer {
 	 * @param rdfID
 	 * @return
 	 */
-	// TODO [Hermano] Esse método ainda é necessário?
-	@Deprecated
+	/*@Deprecated
 	@GET
 	@Path("{ontClass}/{rdfID}/{ontProperty}")
-	public Response getProperty(@PathParam("ontClass") String ontClass,
+	private Response getProperty(@PathParam("ontClass") String ontClass,
 			@PathParam("ontProperty") String ontProperty, @PathParam("rdfID") String rdfID) {
 
 		if (!checkRelationship(ontClass, rdfID)) {
@@ -403,7 +401,7 @@ public abstract class SerinServer {
 		List<Statement> statements = individual.listProperties(lookup(ontProperty).asProperty()).toList();
 
 		return Response.ok(new RDFOutput(getModel().getNsPrefixMap(), statements)).build();
-	}
+	}*/
 
 	/**
 	 * Método DELETE
@@ -413,11 +411,10 @@ public abstract class SerinServer {
 	 * @param ontProperty
 	 * @return
 	 */
-	// TODO [Hermano] Esse método ainda é necessário?
-	@Deprecated
+	/*@Deprecated
 	@DELETE
 	@Path("{ontClass}/{rdfID}/{ontProperty}")
-	public Response deleteProperty(@PathParam("ontClass") String ontClass,
+	private Response deleteProperty(@PathParam("ontClass") String ontClass,
 			@PathParam("rdfID") String rdfID, @PathParam("ontProperty") String ontProperty) {
 
 		if (!checkRelationship(ontClass, rdfID, ontProperty)) {
@@ -438,7 +435,7 @@ public abstract class SerinServer {
 		UpdateAction.execute(request, getModel());
 
 		return Response.status(Status.OK).build();
-	}
+	}*/
 
 	/**
 	 * Se resource for uma classe verifica se possui a anotação SERIN, caso seja
