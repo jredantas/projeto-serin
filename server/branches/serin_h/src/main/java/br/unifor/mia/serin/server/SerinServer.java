@@ -138,30 +138,51 @@ public abstract class SerinServer {
 	}
 
 	/**
-	 * Trabalha tanto como "LIST Property" como "GET Individual".
+	 * Obtém um "Individual".
 	 * 
 	 * @param ontClass
 	 *            Classe a que o resource pertence.
-	 * @param resourceID
+	 * @param rdfID
 	 *            identificação do resource, pode ser um individuo como uma
 	 *            propriedade.
 	 * @return
 	 */
 	@GET
-	@Path("{ontClass}/{resourceID}")
-	public Response getResource(@PathParam("ontClass") String ontClass, @PathParam("resourceID") String resourceID,
-		@QueryParam("fetch") String fetch) {
-		
-		OntResource resource = lookup(resourceID);
+	@Path("{ontClass}/{rdfID}")
+	public Response getIndividual(@PathParam("ontClass") String ontClass, @PathParam("rdfID") String rdfID,
+			@QueryParam("fetch") String fetch) {
+	
+		OntResource resource = lookup(rdfID);
 
 		if (resource == null) {
 			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
 		}
-
-		if (resource.isProperty()) {
-			return listProperty(ontClass, resource.asProperty());
-		} else {
-			return getIndividual(ontClass, resource.asIndividual(), fetch);
+		
+		if (!getModel().contains(resource, RDF.type, lookup(ontClass))) {
+			return Response.status(Status.BAD_REQUEST).entity(NOT_MEMBERSHIP).build();
+		}
+	
+		if (!hasSerinAnnotation(lookup(ontClass), Serin.GET)) {
+			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
+		}
+	
+		List<Individual> individuals = new ArrayList<Individual>();
+		if ("eager".equals(fetch)) {
+			for (Statement prop : resource.listProperties().toList()) {
+				if (prop.getPredicate().as(OntProperty.class).isObjectProperty()) {
+					individuals.add(prop.getObject().as(Individual.class));
+				}
+			}
+		}
+	
+		try {
+			individuals.add(resource.asIndividual());
+			Individual[] array = new Individual[individuals.size()];
+			String result = OntologyConverter.toRDFXML(individuals.toArray(array));
+	
+			return Response.ok(decodeURLTemplate(result)).build();
+		} catch (IOException e) {
+			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
 		}
 	}
 
@@ -188,43 +209,6 @@ public abstract class SerinServer {
 
 		try {
 			String result = OntologyConverter.toRDFXML(individuals.toArray(new Individual[individuals.size()]));
-			return Response.ok(decodeURLTemplate(result)).build();
-		} catch (IOException e) {
-			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
-		}
-	}
-
-	/**
-	 * 
-	 * 
-	 * @param ontClass
-	 * @param individual
-	 * @return
-	 */
-	private Response getIndividual(String ontClass, Individual individual, String fetch) {
-	
-		if (!getModel().contains(individual, RDF.type, lookup(ontClass))) {
-			return Response.status(Status.BAD_REQUEST).entity(NOT_MEMBERSHIP).build();
-		}
-	
-		if (!hasSerinAnnotation(lookup(ontClass), Serin.GET)) {
-			return Response.status(Status.BAD_REQUEST).entity(SERIN_NOT_AVAILABLE).build();
-		}
-	
-		List<Individual> individuals = new ArrayList<Individual>();
-		if ("eager".equals(fetch)) {
-			for (Statement prop : individual.listProperties().toList()) {
-				if (prop.getPredicate().as(OntProperty.class).isObjectProperty()) {
-					individuals.add(prop.getObject().as(Individual.class));
-				}
-			}
-		}
-	
-		try {
-			individuals.add(individual);
-			Individual[] array = new Individual[individuals.size()];
-			String result = OntologyConverter.toRDFXML(individuals.toArray(array));
-
 			return Response.ok(decodeURLTemplate(result)).build();
 		} catch (IOException e) {
 			return Response.status(Status.NOT_FOUND).entity(RESOURCE_NOT_FOUND).build();
@@ -304,27 +288,25 @@ public abstract class SerinServer {
 				continue;
 			}
 
-			OntResource property = lookup(ontProperty);
+			OntProperty property = lookup(ontProperty).asProperty();
 			
 			if (!hasSerinAnnotation(property, Serin.PUT)) {
 				continue;
 			}
 			
-			RDFNode newValue = OntologyConverter.getStatement(property.asProperty(), rdfXml).getObject();
-
-			Property prop  = property.asProperty();
+			RDFNode newValue = OntologyConverter.getStatement(property, rdfXml).getObject();
 			
-			Statement indStmt = ind.getProperty(prop);
+			Statement indStmt = ind.getProperty(property);
 			
 			if (indStmt != null) {
 				indStmt.changeObject(newValue);	
 			} else {
-				getModel().add(ind, prop, newValue);
+				getModel().add(ind, property, newValue);
 			}
 		}
 		try {
 			String result = decodeURLTemplate(OntologyConverter.toRDFXML(ind));
-			return Response.status(Status.CREATED).entity(result).build();
+			return Response.status(Status.OK).entity(result).build();
 		} catch (IOException e) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -352,15 +334,7 @@ public abstract class SerinServer {
 		return listIndividual(ontClass);
 	}
 
-	/**
-	 * 
-	 * 
-	 * @param ontClass
-	 * @param ontProperty
-	 * @return
-	 */
-	// TODO [Hermano] Esse método ainda é necessário?
-	@Deprecated
+	/*@Deprecated
 	private Response listProperty(String ontClass, OntProperty ontProperty) {
 	
 		if (!hasSerinAnnotation(ontProperty, Serin.GET)) {
@@ -369,15 +343,8 @@ public abstract class SerinServer {
 	
 		List<Statement> statements = getModel().listStatements((Resource) null, ontProperty, (RDFNode) null).toList();
 		return Response.ok(new RDFOutput(getModel().getNsPrefixMap(), statements)).build();
-	}
+	}*/
 
-	/**
-	 * 
-	 * @param ontClass
-	 * @param ontProperty
-	 * @param rdfID
-	 * @return
-	 */
 	/*@Deprecated
 	@GET
 	@Path("{ontClass}/{rdfID}/{ontProperty}")
@@ -403,14 +370,6 @@ public abstract class SerinServer {
 		return Response.ok(new RDFOutput(getModel().getNsPrefixMap(), statements)).build();
 	}*/
 
-	/**
-	 * Método DELETE
-	 * 
-	 * @param ontClass
-	 * @param rdfID
-	 * @param ontProperty
-	 * @return
-	 */
 	/*@Deprecated
 	@DELETE
 	@Path("{ontClass}/{rdfID}/{ontProperty}")
