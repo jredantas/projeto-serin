@@ -1,4 +1,4 @@
-package br.unifor.mia.serin.util;
+package br.unifor.mia.sds.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;

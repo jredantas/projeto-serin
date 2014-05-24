@@ -14,4 +14,10 @@ INSERT DATA
                       cli:clinicName "CARDIO CLINIC";
                       cli:attendedBy <http://URI/Doctor/2>;
                       cli:phoneNumber 34596600.
+
+<http://URI/Clinic/4> rdf:type <http://www.unifor.br/clinic.owl#Clinic>;
+                      cli:clinicName "ENDOCRINOLOGIA CENTRE";
+                      cli:attendedBy <http://URI/Doctor/2>;
+                      cli:phoneNumber 12345678.
+
 }

@@ -1,9 +1,9 @@
-package br.unifor.mia.serin.server;
+package br.unifor.mia.sds.requesthandler;
 
 /**
  * Vocabulary definitions from owl/serin.owl
  */
-public final class Serin {
+public final class SerinAnnotations {
 
 	/**
 	 * <p>
