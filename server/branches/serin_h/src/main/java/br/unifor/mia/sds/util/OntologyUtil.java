@@ -1,11 +1,9 @@
-package br.unifor.mia.sds.persistence;
+package br.unifor.mia.sds.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
@@ -15,18 +13,10 @@ import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.shared.JenaException;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
-public class OntologyConverter {
-	
-	/*public static List<Individual> toObject(Resource resource, String rdfXml) {
-
-		OntModel model = ModelFactory.createOntologyModel();
-		ByteArrayInputStream stream = new ByteArrayInputStream(rdfXml.getBytes());
-		model.read(stream, null);
-		
-		return model.listIndividuals(resource).toList();
-	}*/
+public class OntologyUtil {
 
 	private static final String FORMAT = "RDF/XML-ABBREV";
 	
@@ -37,16 +27,12 @@ public class OntologyConverter {
 	 *             Lança um exceção SAXParserException, no caso de 'rdfXml' ser
 	 *             um XML mal formado.
 	 */
-	private static List<Statement> getStatements(String rdfXml) throws Exception  {
+	private static List<Statement> getStatements(String rdfXml) {
 		
 		OntModel model = ModelFactory.createOntologyModel();
 		ByteArrayInputStream stream = new ByteArrayInputStream(rdfXml.getBytes());
 		
-		try {
-			model.read(stream, null);
-		} catch (Exception e) {
-			throw (Exception) e.getCause();
-		}
+		model.read(stream, null);
 		
 		return model.listStatements().toList();
 	}
@@ -70,18 +56,23 @@ public class OntologyConverter {
 	/*
 	 * Retorna todas as triplas de uma string rdfXml cuja propriedade seja 'property'
 	 */
-	public static Statement getStatement(Property property, String rdfXml) {
+	public static List<Statement> getStatements(Property property, String rdfXml) throws RDFXMLException {
 		
 		OntModel model = ModelFactory.createOntologyModel();
 		ByteArrayInputStream stream = new ByteArrayInputStream(rdfXml.getBytes());
-		model.read(stream, null);
+		
+		try {
+			model.read(stream, null);
+		} catch (JenaException e) {
+			throw new RDFXMLException("WARNING: Instância RDF/XML com erro de sintaxe. --> " + e.getMessage());
+		}
 		
 		List<Statement> listStmt = model.listStatements(null, property, (RDFNode) null).toList();
 		
-		return !listStmt.isEmpty() ? listStmt.get(0) : null;
+		return listStmt.isEmpty() ? null : listStmt;
 	}
 
-	public static String toRDFXML(Individual... individuals) throws IOException {
+	public static String listIndividualsToRDFXML(Individual... individuals) {
 
 		OntModel model = ModelFactory.createOntologyModel();
 		model.setNsPrefixes(individuals[0].getModel().getNsPrefixMap());
@@ -108,14 +99,18 @@ public class OntologyConverter {
 		return rdfXml;
 	}
 
-	public static String toRDFXML(Statement stmt, Resource classResource) throws IOException {
+	public static String listStatementsToRDFXML(Resource classResource, Statement... listStmt) {
 	
 		OntModel model = ModelFactory.createOntologyModel();
-		model.setNsPrefixes(stmt.getModel().getNsPrefixMap());
 		
-		Individual newInd = model.createIndividual(stmt.getSubject().getURI(), classResource);
-		
-		newInd.addProperty(stmt.getPredicate(), stmt.getObject());	
+		for (Statement stmt : listStmt) {
+			
+			model.setNsPrefixes(stmt.getModel().getNsPrefixMap());
+			
+			Individual newInd = model.createIndividual(stmt.getSubject().getURI(), classResource);
+			
+			newInd.addProperty(stmt.getPredicate(), stmt.getObject());
+		}
 		
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		
@@ -144,8 +139,7 @@ public class OntologyConverter {
 	 *             Lança um exceção SAXParserException, no caso de 'rdfXml' ser
 	 *             um XML mal formado.
 	 */
-	public static List<Statement> toStatements(String rdfXml, OntResource classResource, OntModel model)
-			throws Exception {
+	public static List<Statement> RDFXMLtoListStatements(String rdfXml, OntResource classResource, OntModel model) {
 		
 		List<Property> listOfPropertiesDefinedAtInterface = getPropertiesDomainedBy(classResource, model);
 			

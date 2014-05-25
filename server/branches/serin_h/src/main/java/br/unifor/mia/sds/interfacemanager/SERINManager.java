@@ -1,16 +1,23 @@
-package br.unifor.mia.sds.requesthandler;
+package br.unifor.mia.sds.interfacemanager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
+
+import br.unifor.mia.sds.interfacemanager.integrityconstraint.SDSIntegrityConstraintHandler;
+import br.unifor.mia.sds.util.RDFXMLException;
 
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.vocabulary.OWL;
+import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
-public class SERINOntologyController {
+public class SERINManager {
 	
 	/**
 	 * Mapa onde são guardados todas as interfaces SERIN.
@@ -20,48 +27,19 @@ public class SERINOntologyController {
 	
 	private String urlOfInterface;
 	
-	private String[] urlElement = new String[5];
-
-	
-	public SERINOntologyController(String urlOfInterface) {
+	public SERINManager(String urlOfInterface) {
 		this.urlOfInterface = urlOfInterface;
-		
-		StringTokenizer st = new StringTokenizer(urlOfInterface, "/");
-		
-		urlElement[0] = st.nextToken(); // http:
-		urlElement[1] = st.nextToken(); // www.activeontology.com.br
-		urlElement[2] = st.nextToken(); // serin
-		urlElement[3] = st.nextToken(); // www.unifor.br
-		urlElement[4] = st.nextToken(); // clinic.owl
-	}
-	
-	private String getSchema() {
-		return urlElement[0];
-	}
-	
-	private String getHostOfInterface() {
-		return urlElement[1];
-	}
-	
-	private String getEndpointOfInterface() {
-		return urlElement[2];
-	}
-	
-	private String getBaseUriOfInterface() {
-		return urlElement[3];
-	}
-	
-	private String getInterfaceOWLFilename() {
-		return urlElement[4];
 	}
 	
 	private String getNamespace() {
 		// Exemplo: http://www.unifor.br/clinic.owl#
-		return getSchema() + "//" + getBaseUriOfInterface() + "/" + getInterfaceOWLFilename() + "#";
+		List<Statement> listStmt = getOntModelOfInterface().listStatements(null, RDF.type , OWL.Ontology).toList();
+		
+		return listStmt.get(0).getSubject().getURI() + "#";
 	}
 	
 	
-	private boolean hasSerinAnnotation(String className, String annotationURI) throws SERINMalFormedException {
+	private boolean hasSerinAnnotation(String className, String annotationURI) throws SERINException {
 	
 		Property serinAnot = getOntModelOfInterface().getProperty(annotationURI);
 	
@@ -70,6 +48,23 @@ public class SERINOntologyController {
 		}
 	
 		return false;
+	}
+	
+	/*
+	 * Busca todas as propriedades de uma determinada classe.
+	 */
+	private List<Property> getPropertiesDomainedBy(String className) throws SERINException {
+		
+		List<Statement> statements =
+				getOntModelOfInterface().listStatements(null, RDFS.domain, lookup(className)).toList();
+		
+		List<Property> properties = new ArrayList<Property>();
+		
+		for (Statement statement : statements) {
+			properties.add(statement.getSubject().as(Property.class));
+		}
+		
+		return properties;
 	}
 
 	/**
@@ -97,9 +92,9 @@ public class SERINOntologyController {
 	 * 
 	 * @param resourceName
 	 * @return
-	 * @throws SERINMalFormedException 
+	 * @throws SERINException 
 	 */
-	public OntResource lookup(String resourceName) throws SERINMalFormedException {
+	public OntResource lookup(String resourceName) throws SERINException {
 	
 		OntModel model = getOntModelOfInterface();
 		
@@ -108,22 +103,22 @@ public class SERINOntologyController {
 		
 		// Senão localizar é por que esse recurso não está definido na interface SERIN
 		if (resource == null) {
-			throw new SERINMalFormedException(SDSErrorMessage.CONCEPT_NOT_DEFINED);
+			throw new SERINException(SERINWarningMessage.CONCEPT_NOT_DEFINED);
 		}
 		
 		return resource;	
 	}
 
 	public void checkPermission(String className, String annotation)
-			throws AnnotationlessException, SERINMalFormedException {
+			throws AnnotationlessException, SERINException {
 		
 		if (!hasSerinAnnotation(className, annotation)) {
 			// Se a classe não possui a anotação indicada
-			throw new AnnotationlessException(SDSErrorMessage.SERIN_ANNOTATION_NOT_AVAILABLE);
+			throw new AnnotationlessException();
 		}
 	}
 
-	public void checkDomain(String propertyName, String className) throws SERINMalFormedException {
+	public void checkDomain(String propertyName, String className) throws SERINException {
 
 		OntModel model = getOntModelOfInterface();
 
@@ -133,7 +128,21 @@ public class SERINOntologyController {
 
 		// Senão contem a relação de dominio é por que esse recurso não está definido na interface SERIN
 		if (!model.contains(propertyResource, RDFS.domain, classResource)) {
-			throw new SERINMalFormedException(SDSErrorMessage.PROPERTY_DOMAIN_INVALID);
+			throw new SERINException(SERINWarningMessage.PROPERTY_DOMAIN_INVALID);
 		}
-	}	
+	}
+	
+	public void checkIntegrityConstraint(String className, DBHandler dbHandler, String rdfXml)
+			throws SERINException, RDFXMLException {
+		
+		// Localiza todas as propriedade associadas à classe 'className'.
+		List<Property> properties = getPropertiesDomainedBy(className);
+
+		SDSIntegrityConstraintHandler icHandler = new SDSIntegrityConstraintHandler(dbHandler);
+
+		// Verificar as anotações de propriedades
+		icHandler.checkProperties(getOntModelOfInterface(), properties, rdfXml);
+		
+		// TODO Verificar classe Internal
+	}
 }

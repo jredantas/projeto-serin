@@ -15,10 +15,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
-import br.unifor.mia.sds.requesthandler.AnnotationlessException;
-import br.unifor.mia.sds.requesthandler.MembershipException;
+import br.unifor.mia.sds.requesthandler.ConfigurationException;
+import br.unifor.mia.sds.requesthandler.SDSException;
 import br.unifor.mia.sds.requesthandler.SDSRequestHandler;
-import br.unifor.mia.sds.requesthandler.SERINMalFormedException;
+import br.unifor.mia.sds.util.RDFXMLException;
 import br.unifor.mia.sds.util.URLTemplate;
 
 
@@ -49,8 +49,12 @@ public class SDSAddressConventionHandler {
 	 * @throws IOException 
 	 */
 	@GET
-	public String get_interface_list() throws IOException {
-		return requestHandler.get_interface_list();
+	public Response get_interface_list() {
+		try {
+			return Response.ok(requestHandler.get_interface_list()).build();
+		} catch (ConfigurationException e) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+		}
 	}
 	
 	/**
@@ -65,12 +69,16 @@ public class SDSAddressConventionHandler {
 	 */
 	@GET
 	@Path("{iHostName}/{interfaceName}")
-	public String get_interface(@PathParam("iHostName") String iHostName,
+	public Response get_interface(@PathParam("iHostName") String iHostName,
 			@PathParam("interfaceName") String interfaceName) {
 		
 		String interfaceKey = iHostName + "_" + interfaceName;
 
-		return requestHandler.get_interface(interfaceKey);
+		try {
+			return Response.ok(requestHandler.get_interface(interfaceKey)).build();
+		} catch (ConfigurationException e) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+		}
 	}
 
 	/**
@@ -90,7 +98,6 @@ public class SDSAddressConventionHandler {
 		String interfaceKey = iHostName + "_" + interfaceName;
 		
 		try {
-			
 			String individuals = requestHandler.get_individual_list(interfaceKey, className);
 			
 			if (individuals == null) {
@@ -102,14 +109,9 @@ public class SDSAddressConventionHandler {
 			
 			return Response.ok(URLTemplate.decode(individuals, urlOfInterfaceInSDSServer)).build();
 			
-		} catch (AnnotationlessException e) {
-			e.printStackTrace();
+		} catch (SDSException e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		} catch (SERINMalFormedException e) {
-			e.printStackTrace();
-			return Response.status(Status.NOT_FOUND).entity(e.getMessage()).build();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (ConfigurationException e) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
 	}
@@ -142,28 +144,20 @@ public class SDSAddressConventionHandler {
 		
 		try {
 			
-			String individuo = requestHandler.get_individual(interfaceKey, className, rdfID);
+			String individual = requestHandler.get_individual(interfaceKey, className, rdfID);
 			
-			if (individuo == null) {
+			if (individual == null) {
 				return Response.status(Status.NOT_FOUND).entity(HTTPErrorMessage.RESOURCE_NOT_FOUND).build();
 			}
 		
 			String urlOfInterfaceInSDSServer = info.getAbsolutePath().toString().substring(0, 
 					info.getAbsolutePath().toString().indexOf(className)-1);
 			
-			return Response.ok(URLTemplate.decode(individuo, urlOfInterfaceInSDSServer)).build();
+			return Response.ok(URLTemplate.decode(individual, urlOfInterfaceInSDSServer)).build();
 			
-		} catch (AnnotationlessException e) {
-			e.printStackTrace();
+		} catch (SDSException e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		} catch (MembershipException e) {
-			e.printStackTrace();
-			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		} catch (SERINMalFormedException e) {
-			e.printStackTrace();
-			return Response.status(Status.NOT_FOUND).entity(e.getMessage()).build();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (ConfigurationException e) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
 	}
@@ -188,6 +182,7 @@ public class SDSAddressConventionHandler {
 	 *            SDS (Ex. http://localhost:8080/serinsds/www.unifor.br/clinic.owl/Clinic/3/attendedBy)
 	 * 
 	 * @return Retorna o valor de uma propriedade de um individuo.
+	 * @throws RDFXMLException 
 	 */
 	@GET
 	@Path("{iHostName}/{interfaceName}/{className}/{rdfID}/{propertyName}")
@@ -200,30 +195,22 @@ public class SDSAddressConventionHandler {
 		
 		try {
 			
-			String individuo = requestHandler.get_property_value(interfaceKey, className, rdfID, propertyName);
+			String individual = requestHandler.get_property_value(interfaceKey, className, rdfID, propertyName);
 			
-			if (individuo == null) {
+			if (individual == null) {
 				return Response.status(Status.NOT_FOUND).entity(HTTPErrorMessage.RESOURCE_NOT_FOUND).build();
 			}
 		
 			String urlOfInterfaceInSDSServer = info.getAbsolutePath().toString().substring(0, 
 					info.getAbsolutePath().toString().indexOf(className)-1);
 			
-			return Response.ok(URLTemplate.decode(individuo, urlOfInterfaceInSDSServer)).build();
+			return Response.ok(URLTemplate.decode(individual, urlOfInterfaceInSDSServer)).build();
 			
-		} catch (AnnotationlessException e) {
-			e.printStackTrace();
+		} catch (SDSException e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		} catch (MembershipException e) {
-			e.printStackTrace();
-			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		} catch (SERINMalFormedException e) {
-			e.printStackTrace();
-			return Response.status(Status.NOT_FOUND).entity(e.getMessage()).build();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (ConfigurationException e) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-		}
+		} 
 	}
 	
 	@POST
@@ -245,22 +232,22 @@ public class SDSAddressConventionHandler {
 		
 		String interfaceKey = iHostName + "_" + interfaceName;
 		
+		String urlOfInterfaceInSDSServer = info.getAbsolutePath().toString().substring(0, 
+				info.getAbsolutePath().toString().indexOf(className)-1);
+
 		try {
-			String individuo = requestHandler.post_individual(interfaceKey, className, rdfXml);
-
-			String urlOfInterfaceInSDSServer = info.getAbsolutePath().toString().substring(0, 
-					info.getAbsolutePath().toString().indexOf(className)-1);
-
-			return Response.status(Status.CREATED).entity(URLTemplate.decode(individuo, urlOfInterfaceInSDSServer)).build();
+			rdfXml = URLTemplate.encode(rdfXml, urlOfInterfaceInSDSServer);
 			
-		} catch (SERINMalFormedException e) {
-			e.printStackTrace();
-			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		} catch (IOException e) {
-			e.printStackTrace();
+			String individual = requestHandler.post_individual(interfaceKey, className, rdfXml);
+
+			return Response.status(Status.CREATED).entity(URLTemplate.decode(individual, urlOfInterfaceInSDSServer)).build();
+			
+		} catch (SDSException e) {
+			String msg = URLTemplate.decode(e.getMessage(), urlOfInterfaceInSDSServer);
+			return Response.status(Status.BAD_REQUEST).entity(msg).build();
+		} catch (ConfigurationException e) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-		} catch (AnnotationlessException e) {
-			e.printStackTrace();
+		} catch (RDFXMLException e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
@@ -287,6 +274,7 @@ public class SDSAddressConventionHandler {
 	 *            SDS (Ex. http://localhost:8080/serinsds/www.unifor.br/clinic.owl/Clinic/3/attendedBy)
 	 * 
 	 * @return Retorna o individuo atualizado como a nova propriedade.
+	 * @throws RDFXMLException 
 	 */
 	@POST
 	@Path("{iHostName}/{interfaceName}/{className}/{rdfID}/{propertyName}")
@@ -302,24 +290,22 @@ public class SDSAddressConventionHandler {
 		String interfaceKey = iHostName + "_" + interfaceName;
 		
 		try {
-			String individuo = requestHandler.post_property_value(interfaceKey, className, rdfID, propertyName, rdfXml);
-
 			String urlOfInterfaceInSDSServer = info.getAbsolutePath().toString().substring(0, 
 					info.getAbsolutePath().toString().indexOf(className)-1);
-
-			return Response.status(Status.CREATED).entity(URLTemplate.decode(individuo, urlOfInterfaceInSDSServer)).build();
 			
-		} catch (SERINMalFormedException e) {
-			e.printStackTrace();
+			rdfXml = URLTemplate.encode(rdfXml, urlOfInterfaceInSDSServer);
+			
+			String individual = requestHandler.post_property_value(interfaceKey, className, rdfID, propertyName, rdfXml);
+
+			return Response.status(Status.CREATED).entity(URLTemplate.decode(individual, urlOfInterfaceInSDSServer)).build();
+			
+		} catch (SDSException e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (ConfigurationException e) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-		} catch (AnnotationlessException e) {
-			e.printStackTrace();
+		} catch (RDFXMLException e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
-		
 	}
 	
 	@PUT

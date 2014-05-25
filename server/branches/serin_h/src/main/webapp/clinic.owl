@@ -1,0 +1,163 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY serin "http://www.activeontology.com.br/serin.owl#" >
+]>
+
+
+<rdf:RDF xmlns="http://www.unifor.br/clinic.owl#"
+     xml:base="http://www.unifor.br/clinic.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:serin="http://www.activeontology.com.br/serin.owl#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="http://www.unifor.br/clinic.owl">
+        <rdfs:comment>Clinic Ontology</rdfs:comment>
+        <owl:imports rdf:resource="http://www.activeontology.com.br/serin.owl#"/>
+    </owl:Ontology>
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#attendedBy -->
+
+    <owl:ObjectProperty rdf:about="http://www.unifor.br/clinic.owl#attendedBy">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
+        <rdfs:range rdf:resource="http://www.unifor.br/clinic.owl#Doctor"/>
+        <serin:foreignURI/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#isSpecializedIn -->
+
+    <owl:ObjectProperty rdf:about="http://www.unifor.br/clinic.owl#isSpecializedIn">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Doctor"/>
+        <rdfs:range rdf:resource="http://www.unifor.br/clinic.owl#Specialty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#address -->
+
+    <owl:DatatypeProperty rdf:about="http://www.unifor.br/clinic.owl#address">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#description -->
+
+    <owl:DatatypeProperty rdf:about="http://www.unifor.br/clinic.owl#description">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Specialty"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#doctorName -->
+
+    <owl:DatatypeProperty rdf:about="http://www.unifor.br/clinic.owl#doctorName">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Doctor"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <serin:notNull/>
+        <serin:unique/>
+    </owl:DatatypeProperty>
+    
+    <!-- http://www.unifor.br/clinic.owl#clinicName -->
+
+    <owl:DatatypeProperty rdf:about="http://www.unifor.br/clinic.owl#clinicName">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <serin:notNull/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#phoneNumber -->
+
+    <owl:DatatypeProperty rdf:about="http://www.unifor.br/clinic.owl#phoneNumber">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <serin:id/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#Clinic -->
+
+    <owl:Class rdf:about="http://www.unifor.br/clinic.owl#Clinic">
+        <serin:post></serin:post>
+        <serin:get></serin:get>
+        <serin:put></serin:put>
+        <serin:delete></serin:delete>
+    </owl:Class>
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#Doctor -->
+
+    <owl:Class rdf:about="http://www.unifor.br/clinic.owl#Doctor">
+        <serin:get></serin:get>
+        <serin:post></serin:post>
+        <serin:delete></serin:delete>
+        <serin:put></serin:put>
+    </owl:Class>
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#Specialty -->
+
+    <owl:Class rdf:about="http://www.unifor.br/clinic.owl#Specialty">
+        <serin:put></serin:put>
+        <serin:get></serin:get>
+        <serin:delete></serin:delete>
+        <serin:post></serin:post>
+    </owl:Class>
+</rdf:RDF>
+

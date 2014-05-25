@@ -1,11 +1,11 @@
 package br.unifor.mia.sds.requesthandler;
 
-public class MembershipException extends Exception {
+public class MembershipException extends SDSException {
 
-	private static final long serialVersionUID = 9001622220463477314L;
+	private static final long serialVersionUID = 7535529104095779580L;
 
-	public MembershipException(String msg) {
-		super(msg);
+	public MembershipException() {
+		super("<SDS>RESOURCE NOT MEMBERSHIP OF CLASS</SDS>");
 	}
 
 }
