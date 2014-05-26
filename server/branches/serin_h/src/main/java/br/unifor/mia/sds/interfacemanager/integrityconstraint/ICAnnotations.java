@@ -1,9 +1,9 @@
-package br.unifor.mia.sds.interfacemanager;
+package br.unifor.mia.sds.interfacemanager.integrityconstraint;
 
 /**
  * Vocabulary definitions from owl/serin.owl
  */
-public final class SerinAnnotations {
+public final class ICAnnotations {
 
 	/**
 	 * <p>
@@ -11,14 +11,6 @@ public final class SerinAnnotations {
 	 * </p>
 	 */
 	public static final String NS = "http://www.activeontology.com.br/serin.owl#";
-
-	public static final String DELETE = "http://www.activeontology.com.br/serin.owl#delete";
-
-	public static final String GET = "http://www.activeontology.com.br/serin.owl#get";
-
-	public static final String POST = "http://www.activeontology.com.br/serin.owl#post";
-
-	public static final String PUT = "http://www.activeontology.com.br/serin.owl#put";
 	
 	// Anotações de restrição de integridade
 	

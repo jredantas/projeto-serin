@@ -13,6 +13,8 @@ import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.update.UpdateAction;
@@ -64,35 +66,8 @@ public final class DB {
 		return URLTemplate.URL_TEMPLATE + "/" + cls.getLocalName() + "/" + sequence++;
 	}
 
-	public boolean isMembership(String rdfID, Resource classNameResource) {
+	private String getIndividual(String rdfID, Resource classResource) {
 	
-		Individual individuo = model.getIndividual(URLTemplate.URL_TEMPLATE + "/"+ classNameResource.getLocalName() + "/" + rdfID);
-		
-		return model.contains(individuo, RDF.type, classNameResource);
-	}
-
-	public boolean isMembership(Resource resource, Resource classResource) {		
-		return model.contains(resource, RDF.type, classResource);
-	}
-
-	public boolean contains(String uri) {
-		Individual ind = model.getIndividual(uri);
-		return ind == null ? false : true;
-	}
-
-	public String listIndividuals(Resource cls) {
-		
-		List<Individual> individuals = model.listIndividuals(cls).toList();
-
-		if (individuals.isEmpty()) {
-			return null;
-		}
-		
-		return OntologyUtil.listIndividualsToRDFXML(individuals.toArray(new Individual[individuals.size()]));
-	}
-
-	public String getIndividual(String rdfID, Resource classResource) {
-
 		if (rdfID == null) {
 			return null;
 		}
@@ -112,7 +87,98 @@ public final class DB {
 		return OntologyUtil.listIndividualsToRDFXML(individual);
 	}
 
-	public String getProperty(OntResource classResource, String rdfID, OntResource propertyResource)
+	public boolean isMembership(String rdfID, Resource classNameResource) {
+	
+		Individual individuo = model.getIndividual(URLTemplate.URL_TEMPLATE + "/"+ classNameResource.getLocalName() + "/" + rdfID);
+		
+		return model.contains(individuo, RDF.type, classNameResource);
+	}
+
+	public boolean isMembership(Resource resource, Resource classResource) {		
+		return model.contains(resource, RDF.type, classResource);
+	}
+
+	public boolean contains(String uri) {
+		Individual ind = model.getIndividual(uri);
+		return ind == null ? false : true;
+	}
+
+	public String getCompositeIndividual(String className, String rdfID, List<Property> embeddedProperties) {
+
+		if (rdfID == null) {
+			return null;
+		}
+
+		Individual individual = null;
+
+		if (rdfID.indexOf(URLTemplate.URL_TEMPLATE) != -1) {
+			individual = model.getIndividual(rdfID);
+		} else {
+			individual = model.getIndividual(URLTemplate.URL_TEMPLATE + "/" + className + "/" + rdfID);
+		}
+
+		if (individual == null) {
+			return null;
+		}
+
+		List<Individual> individuals = new ArrayList<Individual>();
+		
+		individuals.add(individual);
+		
+		for (Property property : embeddedProperties) {
+			List<Statement> stmts =
+					model.listStatements(model.getResource(individual.getURI()), property, (RDFNode) null).toList();
+
+			for (Statement stmt : stmts) {
+				if (stmt.getObject().isResource()) {
+					individuals.add(model.getIndividual(stmt.getObject().asResource().getURI()));
+				}
+			}
+		}
+
+		return OntologyUtil.listIndividualsToRDFXML(individuals.toArray(new Individual[individuals.size()]));
+	}
+
+	public String getCompositeIndividual(OntResource classResource, List<Property> embeddedProperties) {
+
+		List<Individual> individuals = model.listIndividuals(classResource).toList();
+		
+		List<Individual> embeddedIndividuals = new ArrayList<Individual>();
+
+		if (individuals.isEmpty()) {
+			return null;
+		}
+		
+		for (Property property : embeddedProperties) {
+			for (Individual individual : individuals) {
+				
+				List<Statement> stmts =
+						model.listStatements(model.getResource(individual.getURI()), property, (RDFNode) null).toList();
+
+				for (Statement stmt : stmts) {
+					if (stmt.getObject().isResource()) {
+						embeddedIndividuals.add(model.getIndividual(stmt.getObject().asResource().getURI()));
+					}
+				}
+			}
+		}
+
+		individuals.addAll(embeddedIndividuals);
+		
+		return OntologyUtil.listIndividualsToRDFXML(individuals.toArray(new Individual[individuals.size()]));
+	}
+
+	/**
+	 * Apesar do nome do método, ele retorna uma instância RDF, contudo, a instância é retornada apenas com a
+	 * propriedade solicitada.  
+	 * 
+	 * @param classResource
+	 * @param rdfID
+	 * @param propertyResource
+	 * @return
+	 * @throws DBQueryOperationException
+	 */
+	public String getPropertyValueOf(OntResource classResource, String rdfID, OntResource propertyResource)
 			throws DBQueryOperationException {
 
 		if (classResource == null || rdfID == null || propertyResource == null) {

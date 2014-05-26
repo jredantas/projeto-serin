@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import br.unifor.mia.sds.interfacemanager.integrityconstraint.DBHandler;
 import br.unifor.mia.sds.interfacemanager.integrityconstraint.SDSIntegrityConstraintHandler;
 import br.unifor.mia.sds.util.RDFXMLException;
 
@@ -26,8 +27,11 @@ public class SERINManager {
 	private static Map<String, OntModel> ontologyMap = new HashMap<String, OntModel>();
 	
 	private String urlOfInterface;
+
+	private String annotation;
 	
-	public SERINManager(String urlOfInterface) {
+	public SERINManager(String annotation, String urlOfInterface) {
+		this.annotation = annotation;
 		this.urlOfInterface = urlOfInterface;
 	}
 	
@@ -39,11 +43,11 @@ public class SERINManager {
 	}
 	
 	
-	private boolean hasSerinAnnotation(String className, String annotationURI) throws SERINException {
+	private boolean hasSerinAnnotation(String resourceName, String annotationURI) throws SERINException {
 	
 		Property serinAnot = getOntModelOfInterface().getProperty(annotationURI);
 	
-		if (lookup(className).getProperty(serinAnot) != null) {
+		if (lookup(resourceName).getProperty(serinAnot) != null) {
 			return true;
 		}
 	
@@ -109,8 +113,7 @@ public class SERINManager {
 		return resource;	
 	}
 
-	public void checkPermission(String className, String annotation)
-			throws AnnotationlessException, SERINException {
+	public void checkPermission(String className) throws AnnotationlessException, SERINException {
 		
 		if (!hasSerinAnnotation(className, annotation)) {
 			// Se a classe não possui a anotação indicada
@@ -144,5 +147,36 @@ public class SERINManager {
 		icHandler.checkProperties(getOntModelOfInterface(), properties, rdfXml);
 		
 		// TODO Verificar classe Internal
+	}
+
+	/**
+	 * Busca apenas as instâncias embedded de PRIMEIRO nível, isso é, não faz busca em profundidade.  
+	 * 
+	 * @param className
+	 * @param rdfID
+	 * @param dbHandler
+	 * @return
+	 * @throws SERINException
+	 */
+	public String getCompositeIndividual(String className, String rdfID, DBHandler dbHandler) throws SERINException {
+
+		// Localiza todas as propriedade associadas à classe 'className'.
+		List<Property> properties = getPropertiesDomainedBy(className);
+
+		SDSIntegrityConstraintHandler icHandler = new SDSIntegrityConstraintHandler(dbHandler);
+
+		// Busca instância 'rdfID' e suas instâncias Embedded
+		return icHandler.getCompositeIndividual(getOntModelOfInterface(), className, rdfID, properties);
+	}
+
+	public String getCompositeIndividual(OntResource classResource, DBHandler dbHandler) throws SERINException {
+
+		// Localiza todas as propriedade associadas à classe 'className'.
+		List<Property> properties = getPropertiesDomainedBy(classResource.getLocalName());
+
+		SDSIntegrityConstraintHandler icHandler = new SDSIntegrityConstraintHandler(dbHandler);
+
+		// Busca instância 'rdfID' e suas instâncias Embedded
+		return icHandler.getCompositeIndividual(getOntModelOfInterface(), classResource, properties);
 	}
 }

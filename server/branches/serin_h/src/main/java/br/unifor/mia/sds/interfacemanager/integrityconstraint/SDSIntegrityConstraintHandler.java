@@ -3,12 +3,11 @@ package br.unifor.mia.sds.interfacemanager.integrityconstraint;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.unifor.mia.sds.interfacemanager.DBHandler;
-import br.unifor.mia.sds.interfacemanager.SerinAnnotations;
 import br.unifor.mia.sds.util.OntologyUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
 
 import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -39,10 +38,49 @@ public class SDSIntegrityConstraintHandler {
 
 			// Verifica ForeignURI
 			checkForeignURIConstraint(modelOfInterface, property, rdfXml);
-
-			// Verifica Embedded
-			checkEmbeddedConstraint(modelOfInterface, property, rdfXml);
 		}
+	}
+
+	/**
+	 * Verifica Embedded
+	 * 
+	 * @param ontModelOfInterface
+	 * @param properties
+	 * @param rdfID
+	 * @return
+	 */
+	public String getCompositeIndividual(OntModel modelOfInterface, String className, String rdfID,
+			List<Property> properties) {
+
+		// Localiza todas as propriedade embedded
+		List<Property> embeddedProperties = new ArrayList<Property>();
+		
+		Property serinAnot = modelOfInterface.getProperty(ICAnnotations.EMBEDDED);
+		
+		for (Property property : properties) {
+			if (property.getProperty(serinAnot) != null) {
+				embeddedProperties.add(property);
+			}	
+		}
+	
+		return dbHandler.getCompositeIndividual(className, rdfID, embeddedProperties);
+	}
+
+	public String getCompositeIndividual(OntModel modelOfInterface, OntResource classResource,
+			List<Property> properties) {
+
+		// Localiza todas as propriedade embedded
+		List<Property> embeddedProperties = new ArrayList<Property>();
+		
+		Property serinAnot = modelOfInterface.getProperty(ICAnnotations.EMBEDDED);
+		
+		for (Property property : properties) {
+			if (property.getProperty(serinAnot) != null) {
+				embeddedProperties.add(property);
+			}	
+		}
+	
+		return dbHandler.getCompositeIndividual(classResource, embeddedProperties);
 	}
 
 	/**
@@ -58,7 +96,7 @@ public class SDSIntegrityConstraintHandler {
 	private void checkNotNullConstraint(OntModel modelOfInterface, Property property, String rdfXml)
 			throws NotNullException, RDFXMLException {
 
-		Property serinAnot = modelOfInterface.getProperty(SerinAnnotations.NOT_NULL);
+		Property serinAnot = modelOfInterface.getProperty(ICAnnotations.NOT_NULL);
 
 		if (property.getProperty(serinAnot) != null) {
 			// verificar se regras do not null estão satisfeitas na instância 'rdfXml'
@@ -72,7 +110,7 @@ public class SDSIntegrityConstraintHandler {
 	private void checkUniqueConstraint(OntModel modelOfInterface, Property property, String rdfXml)
 			throws UniqueException, RDFXMLException {
 		
-		Property serinAnot = modelOfInterface.getProperty(SerinAnnotations.UNIQUE);
+		Property serinAnot = modelOfInterface.getProperty(ICAnnotations.UNIQUE);
 		
 		if (property.getProperty(serinAnot) != null) {
 			// verificar se regras do Unique estão satisfeitas na instância 'rdfXml'
@@ -86,7 +124,7 @@ public class SDSIntegrityConstraintHandler {
 	private void checkIdConstraint(OntModel modelOfInterface, Property property, String rdfXml)
 			throws IdException, RDFXMLException {
 		
-		Property serinAnot = modelOfInterface.getProperty(SerinAnnotations.ID);
+		Property serinAnot = modelOfInterface.getProperty(ICAnnotations.ID);
 		
 		if (property.getProperty(serinAnot) != null) {
 			// verificar se regras do ID estão satisfeitas na instância 'rdfXml'
@@ -100,7 +138,7 @@ public class SDSIntegrityConstraintHandler {
 	private void checkForeignURIConstraint(OntModel modelOfInterface, Property property, String rdfXml)
 			throws RDFXMLException, ForeignURIException {
 		
-		Property serinAnot = modelOfInterface.getProperty(SerinAnnotations.FOREIGN_URI);
+		Property serinAnot = modelOfInterface.getProperty(ICAnnotations.FOREIGN_URI);
 		
 		if (property.getProperty(serinAnot) == null) {
 			return;
@@ -151,11 +189,5 @@ public class SDSIntegrityConstraintHandler {
 		}
 		
 		return classes;		
-	}
-
-	private void checkEmbeddedConstraint(OntModel modelOfInterface,
-			Property property, String rdfXml) {
-		// TODO checkEmbeddedConstraint
-
 	}
 }

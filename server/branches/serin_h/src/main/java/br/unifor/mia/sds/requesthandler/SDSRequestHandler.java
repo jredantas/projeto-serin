@@ -6,20 +6,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.Properties;
 
-import com.hp.hpl.jena.rdf.model.Resource;
-
 import br.unifor.mia.sds.interfacemanager.AnnotationlessException;
-import br.unifor.mia.sds.interfacemanager.DBHandler;
 import br.unifor.mia.sds.interfacemanager.SERINException;
 import br.unifor.mia.sds.interfacemanager.SERINManager;
-import br.unifor.mia.sds.interfacemanager.SerinAnnotations;
+import br.unifor.mia.sds.interfacemanager.integrityconstraint.DBHandler;
 import br.unifor.mia.sds.persistence.DB;
 import br.unifor.mia.sds.persistence.DBInsertOperationException;
 import br.unifor.mia.sds.persistence.DBQueryOperationException;
 import br.unifor.mia.sds.util.FileUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
+
+import com.hp.hpl.jena.ontology.OntResource;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
 
 /**
  * Responsabilidade da classe 'SDSRequestHandler' é tratar a requisição, isto é,
@@ -54,6 +56,16 @@ public class SDSRequestHandler {
 		@Override
 		public boolean isMembership(Resource resource, Resource classResource) {
 			return DB.getInstance().isMembership(resource, classResource);
+		}
+
+		@Override
+		public String getCompositeIndividual(String className, String rdfID, List<Property> embeddedProperties) {
+			return DB.getInstance().getCompositeIndividual(className, rdfID, embeddedProperties);
+		}
+
+		@Override
+		public String getCompositeIndividual(OntResource classResource, List<Property> embeddedProperties) {
+			return DB.getInstance().getCompositeIndividual(classResource, embeddedProperties);
 		}
 	};
 	
@@ -127,20 +139,19 @@ public class SDSRequestHandler {
 	public String get_individual_list(String interfaceKey, String className) throws ConfigurationException, SDSException {
 
 		// Carrega a interface associada a essa requisição
-		SERINManager iManager =
-				new SERINManager(initialization().get(interfaceKey).toString());
+		SERINManager iManager = new SERINManager(RequestAnnotations.GET, initialization().get(interfaceKey).toString());
 		
 		try {
 			// Verifica se a classe 'className' pode ser lida, isto é, possui a anotação GET definida na interface
-			iManager.checkPermission(className, SerinAnnotations.GET);
-		
-			/*
-			 *  Verifica se a classe 'className' está definida na interface e busca
-			 * a lista de individuos da classe 'className'.
-			 */ 
-			String individuals = DB.getInstance().listIndividuals(iManager.lookup(className));
+			iManager.checkPermission(className);
 
-			return individuals;
+			/*
+			 *  Método 'lookup' verifica se a classe 'className' está definida na interface.
+			 *  Método 'getCompositeIndividual' busca a lista de individuos da classe 'className'.
+			 *  Método 'getCompositeIndividual' também traz todos os individuos embedded associados aos
+			 *  da classe 'className'. 
+			 */ 
+			return iManager.getCompositeIndividual(iManager.lookup(className), dbHandler);
 			
 		} catch (AnnotationlessException e) {
 			throw new SDSException(e.getMessage());
@@ -153,21 +164,19 @@ public class SDSRequestHandler {
 			throws ConfigurationException, SDSException {
 	
 		// Carrega a interface associada a essa requisição
-		SERINManager iManager =
-				new SERINManager(initialization().get(interfaceKey).toString());
-
+		SERINManager iManager = new SERINManager(RequestAnnotations.GET, initialization().get(interfaceKey).toString());
 
 		try {
 			// Verifica se a classe 'className' pode ser lida, isto é, possui a anotação GET definida na interface
-			iManager.checkPermission(className, SerinAnnotations.GET);
+			iManager.checkPermission(className);
 			
 			/*
 			 * Método 'lookup' verifica se a classe 'className' do individuo está definida na interface e
-			 * 'isMembership' verifica se o individuo pertence a classe 'className'
+			 * 'isMembership' verifica se o individuo (rdfID) pertence a classe 'className'
 			 */
 			if (DB.getInstance().isMembership(rdfID, iManager.lookup(className))) {
-				// Busca o individuo na base de dados 
-				return DB.getInstance().getIndividual(rdfID, iManager.lookup(className));
+				// Busca o objeto 'rdfID' e todos os individuos embedded na base de dados 
+				return iManager.getCompositeIndividual(className, rdfID, dbHandler);
 			} else {
 				throw new MembershipException();
 			}
@@ -179,16 +188,18 @@ public class SDSRequestHandler {
 		}
 	}
 
+	/**
+	 * TODO falta implementar a busca pelo composite (embedded) individivuo
+	 */
 	public String get_property_value(String interfaceKey, String className, String rdfID, String propertyName)
 			throws SDSException, ConfigurationException {
 
 		// Carrega a interface associada a essa requisição
-		SERINManager iManager =
-				new SERINManager(initialization().get(interfaceKey).toString());
+		SERINManager iManager = new SERINManager(RequestAnnotations.GET, initialization().get(interfaceKey).toString());
 
 		try {
 			// Verifica se a classe 'className' pode ser lida, isto é, possui a anotação GET definida na interface
-			iManager.checkPermission(className, SerinAnnotations.GET);
+			iManager.checkPermission(className);
 	
 			/*
 			 * Verifica se a classe 'className' do individuo está definida na interface e
@@ -200,7 +211,7 @@ public class SDSRequestHandler {
 				iManager.checkDomain(propertyName, className);
 				
 				// Busca o individuo na base de dados
-				return DB.getInstance().getProperty(iManager.lookup(className), rdfID, iManager.lookup(propertyName));
+				return DB.getInstance().getPropertyValueOf(iManager.lookup(className), rdfID, iManager.lookup(propertyName));
 			} else {
 				throw new MembershipException();
 			}
@@ -217,11 +228,11 @@ public class SDSRequestHandler {
 			throws ConfigurationException, SDSException, RDFXMLException {
 
 		// Carrega a interface associada a essa requisição
-		SERINManager iManager = new SERINManager(initialization().get(interfaceKey).toString());
+		SERINManager iManager = new SERINManager(RequestAnnotations.POST, initialization().get(interfaceKey).toString());
 
 		// Verifica se a classe 'className' pode ser persistida, isto é, possui a anotação POST definida na interface
 		try {
-			iManager.checkPermission(className, SerinAnnotations.POST);
+			iManager.checkPermission(className);
 
 			// Verifica se todas as restrições de integridade da instancia estão satisfeitas
 			iManager.checkIntegrityConstraint(className, dbHandler, rdfXml);
@@ -239,12 +250,12 @@ public class SDSRequestHandler {
 			String rdfXml) throws ConfigurationException, SDSException, RDFXMLException {
 
 		// Carrega a interface associada a essa requisição
-		SERINManager iManager = new SERINManager(initialization().get(interfaceKey).toString());
+		SERINManager iManager = new SERINManager(RequestAnnotations.POST, initialization().get(interfaceKey).toString());
 
 		// Verifica se a classe 'className' pode ser persistida, isto é, possui
 		// a anotação POST definida na interface
 		try {
-			iManager.checkPermission(className, SerinAnnotations.POST);
+			iManager.checkPermission(className);
 
 			// Verifica se todas as restrições de integridade da instancia estão satisfeitas
 			iManager.checkIntegrityConstraint(className, dbHandler, rdfXml);
