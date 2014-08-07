@@ -49,7 +49,7 @@ public class SDSIntegrityConstraintHandler {
 	 * @param rdfID
 	 * @return
 	 */
-	public String getCompositeIndividual(OntModel modelOfInterface, String className, String rdfID,
+	public String getIndividual(OntModel modelOfInterface, String className, String rdfID,
 			List<Property> properties) {
 
 		// Localiza todas as propriedade embedded
@@ -63,10 +63,10 @@ public class SDSIntegrityConstraintHandler {
 			}	
 		}
 	
-		return dbHandler.getCompositeIndividual(className, rdfID, embeddedProperties);
+		return dbHandler.getIndividual(className, rdfID, embeddedProperties);
 	}
 
-	public String getCompositeIndividual(OntModel modelOfInterface, OntResource classResource,
+	public String getIndividuals(OntModel modelOfInterface, OntResource classResource,
 			List<Property> properties) {
 
 		// Localiza todas as propriedade embedded
@@ -80,7 +80,7 @@ public class SDSIntegrityConstraintHandler {
 			}	
 		}
 	
-		return dbHandler.getCompositeIndividual(classResource, embeddedProperties);
+		return dbHandler.getIndividuals(classResource, embeddedProperties);
 	}
 
 	/**
@@ -147,6 +147,12 @@ public class SDSIntegrityConstraintHandler {
 		// verificar se regras do FOREIGN URI estão satisfeitas na instância 'rdfXml'
 		List<Statement> stmts = OntologyUtil.getStatements(property, rdfXml);
 		
+		if (stmts == null) {
+			// Instância 'rdfXml' não possui a propriedade 'property'.
+			// Como a anotação 'foreignURI' não é obrigatória, então aborta a verificação.
+			return;
+		}
+		
 		for (Statement stmt : stmts) {
 			// Verifica se não é literal (literais não são FOREIGN URIs)
 			if (stmt.getObject().isResource()) {
@@ -167,6 +173,8 @@ public class SDSIntegrityConstraintHandler {
 				}
 			}
 		}
+		
+		// TODO verificar 'foreignURI' também em instâncias presentes na interface SERIN.
 	}
 
 	/**

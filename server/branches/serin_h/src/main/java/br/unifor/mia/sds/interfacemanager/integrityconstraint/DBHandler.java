@@ -12,7 +12,7 @@ public interface DBHandler {
 
 	public boolean isMembership(Resource resource, Resource classResource);
 
-	public String getCompositeIndividual(String className, String rdfID, List<Property> embeddedProperties);
+	public String getIndividual(String className, String rdfID, List<Property> embeddedProperties);
 
-	public String getCompositeIndividual(OntResource classResource, List<Property> embeddedProperties);
+	public String getIndividuals(OntResource classResource, List<Property> embeddedProperties);
 }

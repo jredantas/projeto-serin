@@ -1,6 +1,6 @@
 package br.unifor.mia.sds.endpoint;
 
-public interface HTTPErrorMessage {
+public final class HTTPErrorMessage {
 	
 	/**
 	 * 

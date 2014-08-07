@@ -158,7 +158,7 @@ public class SERINManager {
 	 * @return
 	 * @throws SERINException
 	 */
-	public String getCompositeIndividual(String className, String rdfID, DBHandler dbHandler) throws SERINException {
+	public String getIndividual(String className, String rdfID, DBHandler dbHandler) throws SERINException {
 
 		// Localiza todas as propriedade associadas à classe 'className'.
 		List<Property> properties = getPropertiesDomainedBy(className);
@@ -166,10 +166,10 @@ public class SERINManager {
 		SDSIntegrityConstraintHandler icHandler = new SDSIntegrityConstraintHandler(dbHandler);
 
 		// Busca instância 'rdfID' e suas instâncias Embedded
-		return icHandler.getCompositeIndividual(getOntModelOfInterface(), className, rdfID, properties);
+		return icHandler.getIndividual(getOntModelOfInterface(), className, rdfID, properties);
 	}
 
-	public String getCompositeIndividual(OntResource classResource, DBHandler dbHandler) throws SERINException {
+	public String getIndividuals(OntResource classResource, DBHandler dbHandler) throws SERINException {
 
 		// Localiza todas as propriedade associadas à classe 'className'.
 		List<Property> properties = getPropertiesDomainedBy(classResource.getLocalName());
@@ -177,6 +177,6 @@ public class SERINManager {
 		SDSIntegrityConstraintHandler icHandler = new SDSIntegrityConstraintHandler(dbHandler);
 
 		// Busca instância 'rdfID' e suas instâncias Embedded
-		return icHandler.getCompositeIndividual(getOntModelOfInterface(), classResource, properties);
+		return icHandler.getIndividuals(getOntModelOfInterface(), classResource, properties);
 	}
 }

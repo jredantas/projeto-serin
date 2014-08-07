@@ -59,13 +59,13 @@ public class SDSRequestHandler {
 		}
 
 		@Override
-		public String getCompositeIndividual(String className, String rdfID, List<Property> embeddedProperties) {
-			return DB.getInstance().getCompositeIndividual(className, rdfID, embeddedProperties);
+		public String getIndividual(String className, String rdfID, List<Property> embeddedProperties) {
+			return DB.getInstance().getIndividual(className, rdfID, embeddedProperties);
 		}
 
 		@Override
-		public String getCompositeIndividual(OntResource classResource, List<Property> embeddedProperties) {
-			return DB.getInstance().getCompositeIndividual(classResource, embeddedProperties);
+		public String getIndividuals(OntResource classResource, List<Property> embeddedProperties) {
+			return DB.getInstance().getIndividuals(classResource, embeddedProperties);
 		}
 	};
 	
@@ -147,11 +147,11 @@ public class SDSRequestHandler {
 
 			/*
 			 *  Método 'lookup' verifica se a classe 'className' está definida na interface.
-			 *  Método 'getCompositeIndividual' busca a lista de individuos da classe 'className'.
-			 *  Método 'getCompositeIndividual' também traz todos os individuos embedded associados aos
+			 *  Método 'getIndividuals' busca a lista de individuos da classe 'className'.
+			 *  Método 'getIndividuals' também traz todos os individuos embedded associados aos
 			 *  da classe 'className'. 
 			 */ 
-			return iManager.getCompositeIndividual(iManager.lookup(className), dbHandler);
+			return iManager.getIndividuals(iManager.lookup(className), dbHandler);
 			
 		} catch (AnnotationlessException e) {
 			throw new SDSException(e.getMessage());
@@ -176,7 +176,7 @@ public class SDSRequestHandler {
 			 */
 			if (DB.getInstance().isMembership(rdfID, iManager.lookup(className))) {
 				// Busca o objeto 'rdfID' e todos os individuos embedded na base de dados 
-				return iManager.getCompositeIndividual(className, rdfID, dbHandler);
+				return iManager.getIndividual(className, rdfID, dbHandler);
 			} else {
 				throw new MembershipException();
 			}

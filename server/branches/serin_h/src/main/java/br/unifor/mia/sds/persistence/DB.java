@@ -1,10 +1,8 @@
 package br.unifor.mia.sds.persistence;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.unifor.mia.sds.util.FileUtil;
 import br.unifor.mia.sds.util.OntologyUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
 import br.unifor.mia.sds.util.URLTemplate;
@@ -12,37 +10,65 @@ import br.unifor.mia.sds.util.URLTemplate;
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;
+import com.hp.hpl.jena.query.Dataset;
+import com.hp.hpl.jena.query.ReadWrite;
+import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
-import com.hp.hpl.jena.update.UpdateAction;
-import com.hp.hpl.jena.update.UpdateFactory;
-import com.hp.hpl.jena.update.UpdateRequest;
+import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
 
 public final class DB {
 	
+	// Make a TDB-backed dataset
+	private String DB_DIRECTORY = "MyDatabases/DatasetSDS";
+	
+	private Dataset dataset = TDBFactory.createDataset(DB_DIRECTORY);
+	
 	/**
 	 * Banco de dados em memória.
 	 */
-	private OntModel model = ModelFactory.createOntologyModel();
+	//private OntModel model;// = ModelFactory.createOntologyModel();
 	
+	private OntModel getModel() {
+		
+		OntModel model = ModelFactory.createOntologyModel();
+		
+		dataset.begin(ReadWrite.READ);
+
+		model.add(dataset.getDefaultModel());
+		
+		dataset.end();
+		
+		return model;
+	}
+
 	/**
 	 * Contador iniciando em 100.
 	 */
 	private int sequence = 100;
 	
 	private DB() {
-		try {
-			/* Carregar alguns Dados de exemplo */
+		/*try {
+			dataset.begin(ReadWrite.WRITE);
+
+			Model model = dataset.getDefaultModel();
+			
+			 Carregar alguns Dados de exemplo 
 			String insertString = FileUtil.getContent("CLINIC_INSERT_DATA.txt");
 			UpdateRequest request = UpdateFactory.create(insertString);
 			UpdateAction.execute(request, model);
+			
+			dataset.commit();
+			
+			dataset.end();
+
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		}*/
 	}
 	
 	private static DB db;
@@ -75,9 +101,9 @@ public final class DB {
 		Individual individual = null;
 		
 		if (rdfID.indexOf(URLTemplate.URL_TEMPLATE) != -1) {
-			individual = model.getIndividual(rdfID);
+			individual = getModel().getIndividual(rdfID);
 		} else {
-			individual = model.getIndividual(URLTemplate.URL_TEMPLATE + "/"+ classResource.getLocalName() + "/" + rdfID);
+			individual = getModel().getIndividual(URLTemplate.URL_TEMPLATE + "/"+ classResource.getLocalName() + "/" + rdfID);
 		}
 		
 		if (individual == null) {
@@ -89,21 +115,21 @@ public final class DB {
 
 	public boolean isMembership(String rdfID, Resource classNameResource) {
 	
-		Individual individuo = model.getIndividual(URLTemplate.URL_TEMPLATE + "/"+ classNameResource.getLocalName() + "/" + rdfID);
+		Individual individuo = getModel().getIndividual(URLTemplate.URL_TEMPLATE + "/"+ classNameResource.getLocalName() + "/" + rdfID);
 		
-		return model.contains(individuo, RDF.type, classNameResource);
+		return getModel().contains(individuo, RDF.type, classNameResource);
 	}
 
 	public boolean isMembership(Resource resource, Resource classResource) {		
-		return model.contains(resource, RDF.type, classResource);
+		return getModel().contains(resource, RDF.type, classResource);
 	}
 
 	public boolean contains(String uri) {
-		Individual ind = model.getIndividual(uri);
+		Individual ind = getModel().getIndividual(uri);
 		return ind == null ? false : true;
 	}
 
-	public String getCompositeIndividual(String className, String rdfID, List<Property> embeddedProperties) {
+	public String getIndividual(String className, String rdfID, List<Property> embeddedProperties) {
 
 		if (rdfID == null) {
 			return null;
@@ -112,9 +138,9 @@ public final class DB {
 		Individual individual = null;
 
 		if (rdfID.indexOf(URLTemplate.URL_TEMPLATE) != -1) {
-			individual = model.getIndividual(rdfID);
+			individual = getModel().getIndividual(rdfID);
 		} else {
-			individual = model.getIndividual(URLTemplate.URL_TEMPLATE + "/" + className + "/" + rdfID);
+			individual = getModel().getIndividual(URLTemplate.URL_TEMPLATE + "/" + className + "/" + rdfID);
 		}
 
 		if (individual == null) {
@@ -127,11 +153,11 @@ public final class DB {
 		
 		for (Property property : embeddedProperties) {
 			List<Statement> stmts =
-					model.listStatements(model.getResource(individual.getURI()), property, (RDFNode) null).toList();
+					getModel().listStatements(getModel().getResource(individual.getURI()), property, (RDFNode) null).toList();
 
 			for (Statement stmt : stmts) {
 				if (stmt.getObject().isResource()) {
-					individuals.add(model.getIndividual(stmt.getObject().asResource().getURI()));
+					individuals.add(getModel().getIndividual(stmt.getObject().asResource().getURI()));
 				}
 			}
 		}
@@ -139,9 +165,9 @@ public final class DB {
 		return OntologyUtil.listIndividualsToRDFXML(individuals.toArray(new Individual[individuals.size()]));
 	}
 
-	public String getCompositeIndividual(OntResource classResource, List<Property> embeddedProperties) {
+	public String getIndividuals(OntResource classResource, List<Property> embeddedProperties) {
 
-		List<Individual> individuals = model.listIndividuals(classResource).toList();
+		List<Individual> individuals = getModel().listIndividuals(classResource).toList();
 		
 		List<Individual> embeddedIndividuals = new ArrayList<Individual>();
 
@@ -153,11 +179,11 @@ public final class DB {
 			for (Individual individual : individuals) {
 				
 				List<Statement> stmts =
-						model.listStatements(model.getResource(individual.getURI()), property, (RDFNode) null).toList();
+						getModel().listStatements(getModel().getResource(individual.getURI()), property, (RDFNode) null).toList();
 
 				for (Statement stmt : stmts) {
 					if (stmt.getObject().isResource()) {
-						embeddedIndividuals.add(model.getIndividual(stmt.getObject().asResource().getURI()));
+						embeddedIndividuals.add(getModel().getIndividual(stmt.getObject().asResource().getURI()));
 					}
 				}
 			}
@@ -208,6 +234,9 @@ public final class DB {
 		// Gera ID do sujeito automático no HTTP POST.
 		String rdfID = newSubjectURI(classResource);
 		
+		dataset.begin(ReadWrite.WRITE);
+		Model model = dataset.getDefaultModel();
+		
 		Resource subject = model.createResource(rdfID, classResource);
 		
 		// Insere as triplas da instância no banco de dados.
@@ -215,6 +244,9 @@ public final class DB {
 			model.add(subject, statement.getPredicate(), statement.getObject());
 		}
 
+		dataset.commit();
+		dataset.end();
+		
 		return getIndividual(rdfID, classResource);
 	}
 
@@ -224,7 +256,7 @@ public final class DB {
 		// Converte o XML para uma lista de triplas que representam uma instância RDF.
 		List<Statement> individualStatements = OntologyUtil.RDFXMLtoListStatements(rdfXml, classResource, modelOfInterface);
 		
-		Resource subject = model.getIndividual(URLTemplate.URL_TEMPLATE + "/"+ classResource.getLocalName() + "/" + rdfID);
+		Resource subject = getModel().getIndividual(URLTemplate.URL_TEMPLATE + "/"+ classResource.getLocalName() + "/" + rdfID);
 		
 		// Verifica se a instância pertence a base de dados
 		if (subject == null) {
@@ -246,11 +278,17 @@ public final class DB {
 		if (propertyToInsert.isEmpty()) {
 			throw new DBInsertOperationException(DBErrorMessage.POST_PROPERTY_NOT_DEFINED_IN_INSTANCE);
 		}
-		
+
+		dataset.begin(ReadWrite.WRITE);
+		Model model = dataset.getDefaultModel();
+
 		// Insere as triplas da instância no banco de dados.
 		for (Statement statement : propertyToInsert) {
 			model.add(subject, statement.getPredicate(), statement.getObject());
 		}
+
+		dataset.commit();
+		dataset.end();
 
 		return getIndividual(rdfID, classResource);
 	}
