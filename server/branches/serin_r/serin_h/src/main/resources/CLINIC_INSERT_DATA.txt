@@ -1,0 +1,27 @@
+PREFIX cli: <http://www.unifor.br/clinic.owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+INSERT DATA
+{
+<http://URI/Specialty/1> rdf:type <http://www.unifor.br/clinic.owl#Specialty>;
+                         cli:description "Cardiology".
+
+<http://URI/Doctor/2> rdf:type <http://www.unifor.br/clinic.owl#Doctor>;
+                      cli:doctorName "Pedro Porfirio";
+                      cli:isSpecializedIn <http://URI/Specialty/1>.
+
+<http://URI/Clinic/3> rdf:type <http://www.unifor.br/clinic.owl#Clinic>;
+                      cli:clinicName "CARDIO CLINIC";
+                      cli:attendedBy <http://URI/Doctor/2>;
+                      cli:phoneNumber 34596600.
+
+<http://URI/Clinic/4> rdf:type <http://www.unifor.br/clinic.owl#Clinic>;
+                      cli:clinicName "ENDOCRINOLOGIA CENTRE";
+                      cli:attendedBy <http://URI/Doctor/2>;
+                      cli:phoneNumber 12345678.
+                      
+                      
+<http://URI/Projeto_Software/4> rdf:type <http://ontology.serpro.gov.br/ontologies/2014/3/modeloConceitual.owl#Projeto_Software>.
+        
+
+}
