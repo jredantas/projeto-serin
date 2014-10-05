@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="12.2">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>160</x>
+      <y>60</y>
+      <w>500</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>Net
+--
+- url:List&lt;String&gt;
+--
++ createList():List&lt;String&gt;
++ createList(String google,String search,String charset):List&lt;String&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>420</x>
+      <y>320</y>
+      <w>320</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>Agent
+--
+
+--
++ hasService(String host):boolean
++ whichService(String host):List&lt;Service&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>100</x>
+      <y>310</y>
+      <w>270</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>Main
+--
+--
++ main(String args[]):void</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>700</x>
+      <y>70</y>
+      <w>170</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>Service
+--
+- name:String
+- uri:String
+--
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
