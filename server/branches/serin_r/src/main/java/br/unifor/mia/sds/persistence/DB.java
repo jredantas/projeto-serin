@@ -1,8 +1,16 @@
 package br.unifor.mia.sds.persistence;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.unifor.mia.sds.entity.Host;
+import br.unifor.mia.sds.requesthandler.ConfigurationException;
 import br.unifor.mia.sds.util.OntologyUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
 import br.unifor.mia.sds.util.URLTemplate;
@@ -24,7 +32,8 @@ import com.hp.hpl.jena.vocabulary.RDF;
 public final class DB {
 	
 	// Make a TDB-backed dataset
-	private String DB_DIRECTORY = "/home/renato/Dados/loa2014";
+	private String DB_DIRECTORY = "/home/09959295800/Dropbox/Doutorado/ontologia/loa2014";
+	public static final String SELECT_INTERFACE = "SELECT * FROM host_service WHERE interface_name = ?";
 	
 	private Dataset dataset = TDBFactory.createDataset(DB_DIRECTORY);
 	
@@ -84,6 +93,65 @@ public final class DB {
 			return db;	
 		}
 	}
+	
+	/**
+	 * Inicia conexão com banco de dados.
+	 * A string de conexão está configurada para banco MySql.
+	 * @return
+	 * @throws SQLException
+	 */
+	public Connection getConnection() throws SQLException {
+		Connection con = null;
+	    String username = "root";     
+	    String password = ""; 
+		con = DriverManager.getConnection("jdbc:mysql://localhost:3306/serin_discovery",username,password);
+
+		return con;
+	}
+	
+	/**
+	 * Fecha conexão com base de dados.
+	 * @param con
+	 */
+
+	public void closeConnnection(Connection con) {
+		try {
+			con.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Cria lista com os dados obtidos do banco.
+	 */
+	public List<Host> getHostList(String interfaceName){
+		Connection con = null;
+  	    String statement = db.SELECT_INTERFACE;
+		List<Host> lista = new ArrayList<Host>();
+		try {
+	 			con = db.getConnection();
+	 			PreparedStatement prepared = con.prepareStatement(statement);
+	 			prepared.setString(1, interfaceName);
+	 			
+	 			ResultSet reader = prepared.executeQuery();
+	 							reader.first();
+	 			                while (!reader.isLast())
+	 			                {
+	 			                    Host host = new Host();
+	 			                    host.setAddress(reader.getString("host_address"));
+	 			                    lista.add(host);
+	 			                    reader.next();
+	 			                }
+		} catch (SQLException sql) {
+ 			throw new ConfigurationException(sql.getMessage());
+ 		} finally {
+	 			db.closeConnnection(con);
+	 		 	return lista;
+	 	}
+
+	}
+	
 
 	/**
 	 * 

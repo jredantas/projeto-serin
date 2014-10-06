@@ -7,9 +7,14 @@ import java.io.InputStreamReader;
 import java.io.ByteArrayOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import br.unifor.mia.sds.entity.Host;
 import br.unifor.mia.sds.interfacemanager.AnnotationlessException;
 import br.unifor.mia.sds.interfacemanager.SERINException;
 import br.unifor.mia.sds.interfacemanager.SERINManager;
@@ -23,6 +28,8 @@ import br.unifor.mia.sds.util.RDFXMLException;
 import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
 
 /**
  * Responsabilidade da classe 'SDSRequestHandler' é tratar a requisição, isto é,
@@ -98,6 +105,24 @@ public class SDSRequestHandler {
 		return sdsProperty;
 	}
 
+	public String getHostList(String interfaceName) throws ConfigurationException {
+		try {
+			
+			List<Host> lista = DB.getInstance().getHostList(interfaceName);
+			XStream xStream = new XStream(new DomDriver());
+
+			String xmlString = xStream.toXML(lista);
+			
+		    return xmlString;
+			
+		} catch(NullPointerException e) {
+			throw new ConfigurationException("No host attends this SERIN interface.");
+		} //catch (IOException e) {
+			// TODO Auto-generated catch block
+		//	throw new ConfigurationException("No host attends this SERIN interface.");
+		//}
+	}
+
 	public String getInterfaceList() throws ConfigurationException {
 		try {
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -106,10 +131,10 @@ public class SDSRequestHandler {
 
 		    return xmlString;
 		} catch(NullPointerException e) {
-			throw new ConfigurationException("None SERIN interface found.");
+			throw new ConfigurationException("No SERIN interface found.");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			throw new ConfigurationException("None SERIN interface found.");
+			throw new ConfigurationException("No SERIN interface found.");
 		}
 	}
 

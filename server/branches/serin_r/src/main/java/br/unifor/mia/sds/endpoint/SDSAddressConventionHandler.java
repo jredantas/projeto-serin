@@ -49,6 +49,25 @@ public class SDSAddressConventionHandler {
 	 * @throws IOException 
 	 */
 	@GET
+	@Path("/getHostList/{interfaceName}")
+	public Response get_host_list(@PathParam("interfaceName") String interfaceName) {
+		
+		try {
+			return Response.ok(requestHandler.getHostList(interfaceName)).build();
+		} catch (ConfigurationException e) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+		}
+	}
+	
+	/**
+	 * Método GET.
+	 * 
+	 * @return
+	 * Retorna A lista de interfaces SERIN disponíveis no Servidor.
+	 * 
+	 * @throws IOException 
+	 */
+	@GET
 	@Path("/getInterfaceList")
 	public Response get_interface_list() {
 		try {
