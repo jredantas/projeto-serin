@@ -50,7 +50,7 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 		
-		System.out.println("Doscovery agent started...");
+		System.out.println("Discovery agent started...");
 		/**
 		 * Variável para criar query de inserção dos registros na base de dados
 		 */
