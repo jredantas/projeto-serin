@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +24,7 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
@@ -126,6 +126,15 @@ public final class DB {
 	 * Cria lista com os dados obtidos do banco.
 	 */
 	public List<Host> getHostList(String interfaceName){
+		
+		
+		// é mais ou menos assim :)
+		
+		OntModel model = ModelFactory.createOntologyModel();
+		//Resource host = ResourceFactory.createResource();
+		//Resource predicado = getOntModelOfInterface().getProperty("URI");
+		//model.add(host, predicado, "");
+		
 		Connection con = null;
   	    String statement = db.SELECT_INTERFACE;
 		List<Host> lista = new ArrayList<Host>();
@@ -136,7 +145,7 @@ public final class DB {
 	 			
 	 			ResultSet reader = prepared.executeQuery();
 	 							reader.first();
-	 			                while (!reader.isLast())
+	 			                while (!reader.isAfterLast())
 	 			                {
 	 			                    Host host = new Host();
 	 			                    host.setAddress(reader.getString("host_address"));
@@ -313,7 +322,7 @@ public final class DB {
 		for (Statement statement : individualStatements) {
 			model.add(subject, statement.getPredicate(), statement.getObject());
 		}
-
+	
 		dataset.commit();
 		dataset.end();
 		

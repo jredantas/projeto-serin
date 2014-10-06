@@ -110,6 +110,8 @@ public class SDSRequestHandler {
 			
 			List<Host> lista = DB.getInstance().getHostList(interfaceName);
 			XStream xStream = new XStream(new DomDriver());
+			xStream.alias("host", Host.class);
+			xStream.alias("lista", List.class);
 
 			String xmlString = xStream.toXML(lista);
 			
