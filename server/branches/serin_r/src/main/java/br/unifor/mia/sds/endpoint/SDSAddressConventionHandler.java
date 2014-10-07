@@ -55,7 +55,7 @@ public class SDSAddressConventionHandler {
 		try {
 			return Response.ok(requestHandler.getHostList(interfaceName)).build();
 		} catch (ConfigurationException e) {
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage() + " --- " + e.getCause().toString()).build();
 		}
 	}
 	

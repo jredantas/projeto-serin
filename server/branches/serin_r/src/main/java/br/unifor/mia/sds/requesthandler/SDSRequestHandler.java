@@ -124,7 +124,7 @@ public class SDSRequestHandler {
 		    return rdfXml;
 			
 		} catch(NullPointerException e) {
-			throw new ConfigurationException("No host attends this SERIN interface.");
+			throw new ConfigurationException("No host attends this SERIN interface.", e);
 		} //catch (IOException e) {
 			// TODO Auto-generated catch block
 		//	throw new ConfigurationException("No host attends this SERIN interface.");

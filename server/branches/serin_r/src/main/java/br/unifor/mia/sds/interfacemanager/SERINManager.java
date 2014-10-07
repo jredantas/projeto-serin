@@ -84,7 +84,7 @@ public class SERINManager {
 
 			ontologyMap.put(urlOfInterface, ModelFactory.createOntologyModel());
 
-			ontologyMap.get(urlOfInterface).read("file:///home/09959295800/Dropbox/Doutorado/ontologia/serin.owl");
+			//ontologyMap.get(urlOfInterface).read("file:///home/09959295800/Dropbox/Doutorado/ontologia/serin.owl");
 			ontologyMap.get(urlOfInterface).read(urlOfInterface);
 			
 		}

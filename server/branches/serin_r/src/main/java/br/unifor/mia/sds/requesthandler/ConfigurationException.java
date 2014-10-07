@@ -8,4 +8,9 @@ public class ConfigurationException extends Exception {
 		super(msg);
 	}
 
+	public ConfigurationException(String msg, Throwable cause) {
+		// TODO Auto-generated constructor stub
+		super(msg, cause);
+	}
+	
 }
