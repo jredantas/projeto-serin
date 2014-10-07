@@ -7,14 +7,10 @@ import java.io.InputStreamReader;
 import java.io.ByteArrayOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import br.unifor.mia.sds.entity.Host;
+
 import br.unifor.mia.sds.interfacemanager.AnnotationlessException;
 import br.unifor.mia.sds.interfacemanager.SERINException;
 import br.unifor.mia.sds.interfacemanager.SERINManager;
@@ -29,8 +25,6 @@ import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
 
 /**
  * Responsabilidade da classe 'SDSRequestHandler' é tratar a requisição, isto é,

@@ -1,5 +1,6 @@
 package br.unifor.mia.sds.persistence;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -7,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import br.unifor.mia.sds.entity.Host;
 import br.unifor.mia.sds.interfacemanager.SERINManager;
@@ -21,6 +23,7 @@ import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.ReadWrite;
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
@@ -33,11 +36,16 @@ import com.hp.hpl.jena.vocabulary.RDF;
 
 public final class DB {
 	
+	private static final String CONFIG_FILE = "sds.properties";
+	
 	// Make a TDB-backed dataset
-	private String DB_DIRECTORY = "/home/renato/Dados/teste";
+	private String DB_DIRECTORY;
 	public static final String SELECT_INTERFACE = "SELECT * FROM host_service WHERE interface_uri = ?";
 	
-	private Dataset dataset = TDBFactory.createDataset(DB_DIRECTORY);
+	private Dataset dataset;
+	
+	private Properties sdsProperty = new Properties();
+
 	
 	/**
 	 * Banco de dados em memória.
@@ -64,7 +72,7 @@ public final class DB {
 	 */
 	private int sequence = 100;
 	
-	private DB() {
+	private DB() throws ConfigurationException {
 		/*try {
 			dataset.begin(ReadWrite.WRITE);
 
@@ -82,6 +90,15 @@ public final class DB {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}*/
+		
+		
+		try {
+			sdsProperty.load(getClass().getClassLoader().getResourceAsStream(CONFIG_FILE));
+			this.DB_DIRECTORY = sdsProperty.getProperty("dirpath").toString();
+			this.dataset = TDBFactory.createDataset(DB_DIRECTORY);
+		} catch (Exception e) {
+			throw new ConfigurationException("Arquivo de configuração do servidor SDS não localizado.");
+		}
 	}
 	
 	private static DB db;
@@ -89,7 +106,12 @@ public final class DB {
 	public static DB getInstance() {
 		
 		if (db == null) {
-			db = new DB();
+			try {
+				db = new DB();
+			} catch (ConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			return db;
 		} else {
 			return db;	
@@ -104,9 +126,9 @@ public final class DB {
 	 */
 	public Connection getConnection() throws SQLException {
 		Connection con = null;
-	    String username = "root";     
-	    String password = ""; 
-		con = DriverManager.getConnection("jdbc:mysql://localhost:3306/serin_discovery",username,password);
+	    String username = sdsProperty.get("username").toString(); //"root";     
+	    String password = sdsProperty.get("password").toString(); //""; 
+		con = DriverManager.getConnection(sdsProperty.get("connection").toString(),username,password);
 
 		return con;
 	}
@@ -150,10 +172,11 @@ public final class DB {
 	 			                    //Host host = new Host();
 	 			                    //host.setAddress(reader.getString("host_address"));
 	 			                    //lista.add(host);
-	 			                	//SERINManager iManager = new SERINManager(RequestAnnotations.POST, initialization().get(interfaceKey).toString());
-	 			                    Resource host = getModel().getResource("http://www.activeontology.com.br/serin#host"); //ResourceFactory.createResource();
-	 			           		    Property predicado = getModel().getProperty("http://www.activeontology.com.br/serin#address");
-	 			           		    model.add(host, predicado, reader.getString("host_address"));
+	 			                	Resource host = getModel().getOntClass("http://www.activeontology.com.br/serin.owl#Host");
+	 			           		    Property predicado = getModel().getProperty("http://www.activeontology.com.br/serin.owl#address");
+	 			           		    Individual individual = getModel().createIndividual("http://www.activeontology.com.br/serin.owl/Host/"+reader.getString("id_host_service"), host);
+	 			           		    individual.addRDFType(host);
+	 			           		    model.add(individual, predicado, reader.getString("host_address"));
 	 			                    reader.next();
 	 			                }
 		} catch (SQLException sql) {
