@@ -25,6 +25,7 @@ import br.unifor.mia.sds.persistence.DBQueryOperationException;
 import br.unifor.mia.sds.util.FileUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
 
+import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -108,14 +109,25 @@ public class SDSRequestHandler {
 	public String getHostList(String interfaceName) throws ConfigurationException {
 		try {
 			
-			List<Host> lista = DB.getInstance().getHostList(interfaceName);
-			XStream xStream = new XStream(new DomDriver());
-			xStream.alias("host", Host.class);
-			xStream.alias("lista", List.class);
+			//List<Host> lista = DB.getInstance().getHostList(interfaceName);
+			//XStream xStream = new XStream(new DomDriver());
+			//xStream.alias("host", Host.class);
+			//xStream.alias("lista", List.class);
 
-			String xmlString = xStream.toXML(lista);
+			//String xmlString = xStream.toXML(lista);
 			
-		    return xmlString;
+			//Cria os dados em padrão RDF
+			// Carrega a interface associada a essa requisição
+			//SERINManager iManager = new SERINManager(RequestAnnotations.GET, initialization().get("localhost_serin.owl").toString());
+			OntModel model = DB.getInstance().getHostList(interfaceName);
+			
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			
+			model.write(stream, "RDF/XML-ABBREV");
+
+			String rdfXml = new String(stream.toByteArray());
+			
+		    return rdfXml;
 			
 		} catch(NullPointerException e) {
 			throw new ConfigurationException("No host attends this SERIN interface.");
@@ -124,6 +136,7 @@ public class SDSRequestHandler {
 		//	throw new ConfigurationException("No host attends this SERIN interface.");
 		//}
 	}
+
 
 	public String getInterfaceList() throws ConfigurationException {
 		try {

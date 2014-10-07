@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.unifor.mia.sds.entity.Host;
+import br.unifor.mia.sds.interfacemanager.SERINManager;
 import br.unifor.mia.sds.requesthandler.ConfigurationException;
+import br.unifor.mia.sds.requesthandler.RequestAnnotations;
 import br.unifor.mia.sds.util.OntologyUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
 import br.unifor.mia.sds.util.URLTemplate;
@@ -32,8 +34,8 @@ import com.hp.hpl.jena.vocabulary.RDF;
 public final class DB {
 	
 	// Make a TDB-backed dataset
-	private String DB_DIRECTORY = "/home/09959295800/Dropbox/Doutorado/ontologia/loa2014";
-	public static final String SELECT_INTERFACE = "SELECT * FROM host_service WHERE interface_name = ?";
+	private String DB_DIRECTORY = "/home/renato/Dados/teste";
+	public static final String SELECT_INTERFACE = "SELECT * FROM host_service WHERE interface_uri = ?";
 	
 	private Dataset dataset = TDBFactory.createDataset(DB_DIRECTORY);
 	
@@ -125,15 +127,13 @@ public final class DB {
 	/**
 	 * Cria lista com os dados obtidos do banco.
 	 */
-	public List<Host> getHostList(String interfaceName){
-		
+	public OntModel getHostList(String interfaceName){
+		//public List<Host> getHostList(String interfaceName){
+				
 		
 		// é mais ou menos assim :)
 		
 		OntModel model = ModelFactory.createOntologyModel();
-		//Resource host = ResourceFactory.createResource();
-		//Resource predicado = getOntModelOfInterface().getProperty("URI");
-		//model.add(host, predicado, "");
 		
 		Connection con = null;
   	    String statement = db.SELECT_INTERFACE;
@@ -147,16 +147,21 @@ public final class DB {
 	 							reader.first();
 	 			                while (!reader.isAfterLast())
 	 			                {
-	 			                    Host host = new Host();
-	 			                    host.setAddress(reader.getString("host_address"));
-	 			                    lista.add(host);
+	 			                    //Host host = new Host();
+	 			                    //host.setAddress(reader.getString("host_address"));
+	 			                    //lista.add(host);
+	 			                	//SERINManager iManager = new SERINManager(RequestAnnotations.POST, initialization().get(interfaceKey).toString());
+	 			                    Resource host = getModel().getResource("http://www.activeontology.com.br/serin#host"); //ResourceFactory.createResource();
+	 			           		    Property predicado = getModel().getProperty("http://www.activeontology.com.br/serin#address");
+	 			           		    model.add(host, predicado, reader.getString("host_address"));
 	 			                    reader.next();
 	 			                }
 		} catch (SQLException sql) {
  			throw new ConfigurationException(sql.getMessage());
  		} finally {
 	 			db.closeConnnection(con);
-	 		 	return lista;
+	 		 	//return lista;
+	 		 	return model;
 	 	}
 
 	}

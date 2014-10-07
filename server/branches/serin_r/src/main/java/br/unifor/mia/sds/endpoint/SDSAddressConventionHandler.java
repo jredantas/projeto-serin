@@ -49,7 +49,7 @@ public class SDSAddressConventionHandler {
 	 * @throws IOException 
 	 */
 	@GET
-	@Path("/getHostList/{interfaceName}")
+	@Path("/getHostList/{interfaceName:.*}")
 	public Response get_host_list(@PathParam("interfaceName") String interfaceName) {
 		
 		try {

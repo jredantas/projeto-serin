@@ -84,7 +84,7 @@ public class SERINManager {
 
 			ontologyMap.put(urlOfInterface, ModelFactory.createOntologyModel());
 
-			ontologyMap.get(urlOfInterface).read("file:///home/09959295800/Dropbox/Doutorado/ontologia/serin.owl");
+			ontologyMap.get(urlOfInterface).read("file:///home/renato/Dados/serin.owl");
 			ontologyMap.get(urlOfInterface).read(urlOfInterface);
 			
 		}
@@ -181,4 +181,16 @@ public class SERINManager {
 		// Busca instância 'rdfID' e suas instâncias Embedded
 		return icHandler.getIndividuals(getOntModelOfInterface(), classResource, properties);
 	}
+	
+	public String getHosts(OntResource classResource, DBHandler dbHandler) throws SERINException {
+
+		// Localiza todas as propriedade associadas à classe 'className'.
+		List<Property> properties = getPropertiesDomainedBy(classResource.getLocalName());
+
+		SDSIntegrityConstraintHandler icHandler = new SDSIntegrityConstraintHandler(dbHandler);
+
+		// Busca instância 'rdfID' e suas instâncias Embedded
+		return icHandler.getIndividuals(getOntModelOfInterface(), classResource, properties);
+	}
+
 }
