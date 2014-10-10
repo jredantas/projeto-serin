@@ -57,6 +57,7 @@ public class SDSAddressConventionHandler {
 			return Response.ok(requestHandler.getHostList(interfaceName)).build();
 		} catch (ConfigurationException e) {
 			System.out.println("1-Deu erro na chamada da requisição");
+			System.out.println(e.getMessage());
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
 	}

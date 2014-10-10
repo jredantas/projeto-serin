@@ -7,8 +7,11 @@ import java.io.InputStreamReader;
 import java.io.ByteArrayOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
+
+
 
 
 import br.unifor.mia.sds.interfacemanager.AnnotationlessException;
@@ -123,9 +126,11 @@ public class SDSRequestHandler {
 			String rdfXml = new String(stream.toByteArray());
 			
 		    return rdfXml;
-			
+		
 		} catch(NullPointerException e) {
-			throw new ConfigurationException("2-No host attends this SERIN interface.", e);
+			System.out.println(e.getMessage());
+			System.out.println("2-No host attends this SERIN interface. ");
+			throw new ConfigurationException("2-No host attends this SERIN interface.");
 		} //catch (IOException e) {
 			// TODO Auto-generated catch block
 		//	throw new ConfigurationException("No host attends this SERIN interface.");
