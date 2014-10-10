@@ -53,9 +53,11 @@ public class SDSAddressConventionHandler {
 	public Response get_host_list(@PathParam("interfaceName") String interfaceName) {
 		
 		try {
+			System.out.println("1-Entrou na chamada da requisicao.");
 			return Response.ok(requestHandler.getHostList(interfaceName)).build();
 		} catch (ConfigurationException e) {
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage() + " --- " + e.getCause().toString()).build();
+			System.out.println("1-Deu erro na chamada da requisição");
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
 	}
 	

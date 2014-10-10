@@ -91,13 +91,14 @@ public final class DB {
 			e.printStackTrace();
 		}*/
 		
-		
 		try {
-			sdsProperty.load(getClass().getClassLoader().getResourceAsStream(CONFIG_FILE));
+			System.out.println("4-Entrou no DB.construtor.");
+			this.sdsProperty.load(getClass().getClassLoader().getResourceAsStream(CONFIG_FILE));
 			this.DB_DIRECTORY = sdsProperty.getProperty("dirpath").toString();
 			this.dataset = TDBFactory.createDataset(DB_DIRECTORY);
 		} catch (Exception e) {
-			throw new ConfigurationException("Arquivo de configuração do servidor SDS não localizado.");
+			System.out.println("3-Deu erro no construtor.");
+			throw new ConfigurationException(e.getMessage());
 		}
 	}
 	
@@ -107,9 +108,11 @@ public final class DB {
 		
 		if (db == null) {
 			try {
+				System.out.println("3-Entrou no getInstance.");
 				db = new DB();
 			} catch (ConfigurationException e) {
 				// TODO Auto-generated catch block
+				System.out.println("3-Deu erro no getInstance.");
 				e.printStackTrace();
 			}
 			return db;
@@ -126,9 +129,11 @@ public final class DB {
 	 */
 	public Connection getConnection() throws SQLException {
 		Connection con = null;
+		System.out.println("Iniciando conexão com banco de dados.....");
 	    String username = sdsProperty.get("username").toString(); //"root";     
 	    String password = sdsProperty.get("password").toString(); //""; 
 		con = DriverManager.getConnection(sdsProperty.get("connection").toString(),username,password);
+		System.out.println("Conseguiu conectar com banco de dados.....ok");
 
 		return con;
 	}
@@ -154,21 +159,27 @@ public final class DB {
 				
 		
 		// é mais ou menos assim :)
-		
+		System.out.println("5-Entrou no DB.getHostList.");
 		OntModel model = ModelFactory.createOntologyModel();
 		
 		Connection con = null;
   	    String statement = db.SELECT_INTERFACE;
+		System.out.println("5.1-Entrou no DB.getHostList.");
 		List<Host> lista = new ArrayList<Host>();
 		try {
+			System.out.println("5.2-Entrou no DB.getHostList.");
 	 			con = db.getConnection();
+	 			System.out.println("5.3-Entrou no DB.getHostList.");
 	 			PreparedStatement prepared = con.prepareStatement(statement);
 	 			prepared.setString(1, interfaceName);
+	 			System.out.println("5.4-Entrou no DB.getHostList.");
 	 			
 	 			ResultSet reader = prepared.executeQuery();
+	 			System.out.println("5.5-Entrou no DB.getHostList.");
 	 							reader.first();
 	 			                while (!reader.isAfterLast())
 	 			                {
+	 			           		System.out.println("5.6-Entrou no DB.getHostList.");
 	 			                    //Host host = new Host();
 	 			                    //host.setAddress(reader.getString("host_address"));
 	 			                    //lista.add(host);
@@ -178,8 +189,12 @@ public final class DB {
 	 			           		    individual.addRDFType(host);
 	 			           		    model.add(individual, predicado, reader.getString("host_address"));
 	 			                    reader.next();
+		 			           		System.out.println("5.7-Entrou no DB.getHostList.");
 	 			                }
+	 			       		System.out.println("5.8-Entrou no DB.getHostList.");
 		} catch (SQLException sql) {
+			System.out.println("5-Deu erro no DB.getHostList.");
+			System.out.println(sql.getMessage());
  			throw new ConfigurationException(sql.getMessage());
  		} finally {
 	 			db.closeConnnection(con);

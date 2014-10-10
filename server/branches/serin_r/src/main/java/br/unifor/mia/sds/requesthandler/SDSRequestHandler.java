@@ -113,6 +113,7 @@ public class SDSRequestHandler {
 			//Cria os dados em padrão RDF
 			// Carrega a interface associada a essa requisição
 			//SERINManager iManager = new SERINManager(RequestAnnotations.GET, initialization().get("localhost_serin.owl").toString());
+			System.out.println("2-Entrou no método getHostList");
 			OntModel model = DB.getInstance().getHostList(interfaceName);
 			
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -124,7 +125,7 @@ public class SDSRequestHandler {
 		    return rdfXml;
 			
 		} catch(NullPointerException e) {
-			throw new ConfigurationException("No host attends this SERIN interface.", e);
+			throw new ConfigurationException("2-No host attends this SERIN interface.", e);
 		} //catch (IOException e) {
 			// TODO Auto-generated catch block
 		//	throw new ConfigurationException("No host attends this SERIN interface.");
