@@ -34,6 +34,7 @@ import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
 
+
 public final class DB {
 	
 	private static final String CONFIG_FILE = "sds.properties";
@@ -129,6 +130,13 @@ public final class DB {
 	 */
 	public Connection getConnection() throws SQLException {
 		Connection con = null;
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		System.out.println("Iniciando conexão com banco de dados.....");
 	    String username = sdsProperty.get("username").toString(); //"root";     
 	    String password = sdsProperty.get("password").toString(); //""; 
