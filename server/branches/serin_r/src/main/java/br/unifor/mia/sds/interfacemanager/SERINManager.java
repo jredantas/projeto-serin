@@ -84,7 +84,7 @@ public class SERINManager {
 
 			ontologyMap.put(urlOfInterface, ModelFactory.createOntologyModel());
 
-			//ontologyMap.get(urlOfInterface).read("file:///home/09959295800/Dropbox/Doutorado/ontologia/serin.owl");
+			//ontologyMap.get(urlOfInterface).read("file:////home/renato/Dados/serin.owl");
 			ontologyMap.get(urlOfInterface).read(urlOfInterface);
 			
 		}
@@ -105,7 +105,7 @@ public class SERINManager {
 		OntModel model = getOntModelOfInterface();
 		
 		// Tenta recuperar conceitos da ontologia
-		OntResource resource = model.getOntResource(getNamespace() + resourceName);
+		OntResource resource = model.getOntResource(getNamespace()+"#" + resourceName);
 		
 		// Senão localizar é por que esse recurso não está definido na interface SERIN
 		if (resource == null) {

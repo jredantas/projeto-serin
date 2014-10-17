@@ -14,6 +14,8 @@ import java.util.Properties;
 
 
 
+
+
 import br.unifor.mia.sds.interfacemanager.AnnotationlessException;
 import br.unifor.mia.sds.interfacemanager.SERINException;
 import br.unifor.mia.sds.interfacemanager.SERINManager;
@@ -24,8 +26,10 @@ import br.unifor.mia.sds.persistence.DBQueryOperationException;
 import br.unifor.mia.sds.util.FileUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
 
+import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 
@@ -115,13 +119,30 @@ public class SDSRequestHandler {
 			
 			//Cria os dados em padrão RDF
 			// Carrega a interface associada a essa requisição
-			//SERINManager iManager = new SERINManager(RequestAnnotations.GET, initialization().get("localhost_serin.owl").toString());
+			OntModel model = ModelFactory.createOntologyModel();
+			SERINManager iManager = new SERINManager(RequestAnnotations.GET, initialization().get("serin").toString());
+			try {
+				iManager.checkPermission("Host");
+             	Resource host = iManager.getOntModelOfInterface().getOntClass("http://www.activeontology.com.br/serin.owl#Host");
+             	Property predicado = iManager.getOntModelOfInterface().getProperty("http://www.activeontology.com.br/serin.owl#address");
+        		    Individual individual = iManager.getOntModelOfInterface().createIndividual("http://www.activeontology.com.br/serin.owl/Host/"+"111", host);
+        		    individual.addOntClass(host);
+        		    individual.addComment("Testing comments", "EN");
+        		    model.add(individual, predicado, "teste.com.br");
+			} catch (AnnotationlessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SERINException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			System.out.println("2-Entrou no método getHostList");
-			OntModel model = DB.getInstance().getHostList(interfaceName);
+			//OntModel model = DB.getInstance().getHostList(interfaceName);
 			
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			
-			model.write(stream, "RDF/XML-ABBREV");
+			model.write(stream, "RDF/XML");
 
 			String rdfXml = new String(stream.toByteArray());
 			
