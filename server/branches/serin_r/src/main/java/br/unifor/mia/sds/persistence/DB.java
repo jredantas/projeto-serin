@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import br.unifor.mia.sds.entity.Host;
 import br.unifor.mia.sds.interfacemanager.SERINManager;
 import br.unifor.mia.sds.requesthandler.ConfigurationException;
 import br.unifor.mia.sds.requesthandler.RequestAnnotations;
