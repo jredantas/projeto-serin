@@ -41,7 +41,6 @@
         <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
         <rdfs:range rdf:resource="http://www.unifor.br/clinic.owl#Doctor"/>
         <serin:foreignURI/>
-        <serin:embedded/>
     </owl:ObjectProperty>
     
 
@@ -97,7 +96,7 @@
         <serin:notNull/>
         <serin:unique/>
     </owl:DatatypeProperty>
-
+    
     <!-- http://www.unifor.br/clinic.owl#clinicName -->
 
     <owl:DatatypeProperty rdf:about="http://www.unifor.br/clinic.owl#clinicName">
@@ -105,7 +104,6 @@
         <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
         <rdfs:range rdf:resource="&xsd;string"/>
         <serin:notNull/>
-        <serin:unique/>
     </owl:DatatypeProperty>
     
 

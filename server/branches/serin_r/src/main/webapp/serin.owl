@@ -1,0 +1,192 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY serin "http://www.activeontology.com.br/serin.owl#" >
+]>
+
+
+<rdf:RDF xmlns="http://www.activeontology.com.br/serin.owl#"
+     xml:base="http://www.activeontology.com.br/serin.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:serin="http://www.activeontology.com.br/serin.owl#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="http://www.activeontology.com.br/serin.owl">
+        <owl:versionIRI>http://www.activeontology.com.br/serin.owl</owl:versionIRI>
+        <owl:versionInfo>&quot;$Date: 2014/05/24 17:00:22 $&quot;</owl:versionInfo>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#delete -->
+
+    <owl:AnnotationProperty rdf:about="&serin;delete">
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#embedded -->
+
+    <owl:AnnotationProperty rdf:about="&serin;embedded">
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#foreignURI -->
+
+    <owl:AnnotationProperty rdf:about="&serin;foreignURI">
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#get -->
+
+    <owl:AnnotationProperty rdf:about="&serin;get">
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#id -->
+
+    <owl:AnnotationProperty rdf:about="&serin;id">
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#internal -->
+
+    <owl:AnnotationProperty rdf:about="&serin;internal">
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#notNull -->
+
+    <owl:AnnotationProperty rdf:about="&serin;notNull">
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#post -->
+
+    <owl:AnnotationProperty rdf:about="&serin;post">
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#put -->
+
+    <owl:AnnotationProperty rdf:about="&serin;put">
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#unique -->
+
+    <owl:AnnotationProperty rdf:about="&serin;unique">
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#implements -->
+
+    <owl:ObjectProperty rdf:about="&serin;implements">
+        <rdfs:domain rdf:resource="&serin;Host"/>
+        <rdfs:range rdf:resource="&serin;Interface"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#isImplementedBy -->
+
+    <owl:ObjectProperty rdf:about="&serin;isImplementedBy">
+        <owl:inverseOf rdf:resource="&serin;implements"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#address -->
+
+    <owl:DatatypeProperty rdf:about="&serin;address"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#Host -->
+
+    <owl:Class rdf:about="&serin;Host">
+        <get></get>
+    </owl:Class>
+    
+
+
+    <!-- http://www.activeontology.com.br/serin.owl#Interface -->
+
+    <owl:Class rdf:about="&serin;Interface">
+        <get></get>
+    </owl:Class>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.5.0) http://owlapi.sourceforge.net -->
+
