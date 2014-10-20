@@ -63,7 +63,8 @@ public final class DB {
 		
 		dataset.begin(ReadWrite.READ);
 		
-		
+		//prefixo alterado quando se le indivíduos(hosts e interfaces) da própria ontologia SERIN
+		model.setNsPrefix("serin", "http://www.activeontology.com.br/serin.owl#");
 
 		model.add(dataset.getDefaultModel());
 		
@@ -166,6 +167,7 @@ public final class DB {
 	 			con = db.getConnection();
 	 			PreparedStatement prepared = con.prepareStatement(statement);
 	 			prepared.setString(1, interfaceName);
+	 			
 	 			
 	 			ResultSet reader = prepared.executeQuery();
 	 							reader.first();
