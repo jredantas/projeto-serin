@@ -4,18 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ByteArrayOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
-
-
-
-
-
-
 
 import br.unifor.mia.sds.interfacemanager.AnnotationlessException;
 import br.unifor.mia.sds.interfacemanager.SERINException;
@@ -26,10 +18,7 @@ import br.unifor.mia.sds.persistence.DBQueryOperationException;
 import br.unifor.mia.sds.util.FileUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
 
-import com.hp.hpl.jena.ontology.Individual;
-import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 
