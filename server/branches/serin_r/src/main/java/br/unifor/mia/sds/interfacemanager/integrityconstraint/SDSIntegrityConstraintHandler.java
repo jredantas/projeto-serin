@@ -3,6 +3,7 @@ package br.unifor.mia.sds.interfacemanager.integrityconstraint;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.unifor.mia.sds.requesthandler.DBHandler;
 import br.unifor.mia.sds.util.OntologyUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
 

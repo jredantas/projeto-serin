@@ -14,6 +14,7 @@ import br.unifor.mia.sds.entity.Host;
 import br.unifor.mia.sds.interfacemanager.SERINManager;
 import br.unifor.mia.sds.requesthandler.ConfigurationException;
 import br.unifor.mia.sds.requesthandler.RequestAnnotations;
+import br.unifor.mia.sds.util.FileUtil;
 import br.unifor.mia.sds.util.OntologyUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
 import br.unifor.mia.sds.util.URLTemplate;
@@ -32,6 +33,9 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.tdb.TDBFactory;
+import com.hp.hpl.jena.update.UpdateAction;
+import com.hp.hpl.jena.update.UpdateFactory;
+import com.hp.hpl.jena.update.UpdateRequest;
 import com.hp.hpl.jena.vocabulary.RDF;
 
 
@@ -41,7 +45,8 @@ public final class DB {
 	
 	// Make a TDB-backed dataset
 	private String DB_DIRECTORY;
-	public static final String SELECT_INTERFACE = "SELECT * FROM host_service WHERE interface_uri = ?";
+	//public static final String SELECT_HOST = "SELECT * FROM host_service WHERE interface_uri = ?";
+	//public static final String SELECT_INTERFACE = "SELECT * FROM interface";
 	
 	private Dataset dataset;
 	
@@ -74,12 +79,15 @@ public final class DB {
 	private int sequence = 100;
 	
 	private DB() throws ConfigurationException {
-		/*try {
+		try {
+			this.sdsProperty.load(getClass().getClassLoader().getResourceAsStream(CONFIG_FILE));
+			this.DB_DIRECTORY = sdsProperty.getProperty("dirpath").toString();
+			this.dataset = TDBFactory.createDataset(DB_DIRECTORY);
 			dataset.begin(ReadWrite.WRITE);
 
 			Model model = dataset.getDefaultModel();
 			
-			 Carregar alguns Dados de exemplo 
+			// Carregar alguns Dados de exemplo 
 			String insertString = FileUtil.getContent("CLINIC_INSERT_DATA.txt");
 			UpdateRequest request = UpdateFactory.create(insertString);
 			UpdateAction.execute(request, model);
@@ -88,17 +96,7 @@ public final class DB {
 			
 			dataset.end();
 
-		} catch (IOException e) {
-			e.printStackTrace();
-		}*/
-		
-		try {
-			System.out.println("4-Entrou no DB.construtor.");
-			this.sdsProperty.load(getClass().getClassLoader().getResourceAsStream(CONFIG_FILE));
-			this.DB_DIRECTORY = sdsProperty.getProperty("dirpath").toString();
-			this.dataset = TDBFactory.createDataset(DB_DIRECTORY);
 		} catch (Exception e) {
-			System.out.println("3-Deu erro no construtor.");
 			throw new ConfigurationException(e.getMessage());
 		}
 	}
@@ -109,11 +107,9 @@ public final class DB {
 		
 		if (db == null) {
 			try {
-				System.out.println("3-Entrou no getInstance.");
 				db = new DB();
 			} catch (ConfigurationException e) {
 				// TODO Auto-generated catch block
-				System.out.println("3-Deu erro no getInstance.");
 				e.printStackTrace();
 			}
 			return db;
@@ -137,11 +133,9 @@ public final class DB {
 			e.printStackTrace();
 		}
 
-		System.out.println("Iniciando conexão com banco de dados.....");
-	    String username = sdsProperty.get("username").toString(); //"root";     
-	    String password = sdsProperty.get("password").toString(); //""; 
+	    String username = sdsProperty.get("username").toString();     
+	    String password = sdsProperty.get("password").toString(); 
 		con = DriverManager.getConnection(sdsProperty.get("connection").toString(),username,password);
-		System.out.println("Conseguiu conectar com banco de dados.....ok");
 
 		return con;
 	}
@@ -150,7 +144,6 @@ public final class DB {
 	 * Fecha conexão com base de dados.
 	 * @param con
 	 */
-
 	public void closeConnnection(Connection con) {
 		try {
 			con.close();
@@ -159,60 +152,88 @@ public final class DB {
 		}
 	}
 	
+
 	/**
-	 * Cria lista com os dados obtidos do banco.
+	 * Cria lista de hosts com os dados obtidos do banco.
+	 * @throws ConfigurationException 
 	 */
-	public OntModel getHostList(String interfaceName){
-		//public List<Host> getHostList(String interfaceName){
-				
-		
-		// é mais ou menos assim :)
-		System.out.println("5-Entrou no DB.getHostList.");
-		OntModel model = ModelFactory.createOntologyModel();
-		
+	public String getHostList(OntResource classResource, String interfaceName){
+	
 		Connection con = null;
-  	    String statement = db.SELECT_INTERFACE;
-		System.out.println("5.1-Entrou no DB.getHostList.");
-		List<Host> lista = new ArrayList<Host>();
+  	    String statement = DbQuery.SELECT_HOST;
+		List<Individual> individuals = new ArrayList<Individual>();
+
 		try {
-			System.out.println("5.2-Entrou no DB.getHostList.");
 	 			con = db.getConnection();
-	 			System.out.println("5.3-Entrou no DB.getHostList.");
 	 			PreparedStatement prepared = con.prepareStatement(statement);
 	 			prepared.setString(1, interfaceName);
-	 			System.out.println("5.4-Entrou no DB.getHostList.");
 	 			
 	 			ResultSet reader = prepared.executeQuery();
-	 			System.out.println("5.5-Entrou no DB.getHostList.");
 	 							reader.first();
-	 			                while (!reader.isAfterLast())
+	 							while (!reader.isAfterLast())
 	 			                {
-	 			           		System.out.println("5.6-Entrou no DB.getHostList.");
-	 			                    //Host host = new Host();
-	 			                    //host.setAddress(reader.getString("host_address"));
-	 			                    //lista.add(host);
-	 			                	Resource host = getModel().getOntClass("http://www.activeontology.com.br/serin.owl#Host");
 	 			           		    Property predicado = getModel().getProperty("http://www.activeontology.com.br/serin.owl#address");
-	 			           		    Individual individual = getModel().createIndividual("http://www.activeontology.com.br/serin.owl/Host/"+reader.getString("id_host_service"), host);
-	 			           		    individual.addRDFType(host);
-	 			           		    model.add(individual, predicado, reader.getString("host_address"));
-	 			                    reader.next();
-		 			           		System.out.println("5.7-Entrou no DB.getHostList.");
+	 			           		    Individual individual = getModel().createIndividual("http://www.activeontology.com.br/serin.owl/Host/"+reader.getString("id_host_service"), classResource);
+	 			           		    individual.addProperty(predicado, reader.getString("host_address"));
+	 			                    individuals.add(individual);
+	 			           		    reader.next();
 	 			                }
-	 			       		System.out.println("5.8-Entrou no DB.getHostList.");
+	 							
+	 							if (individuals.isEmpty()) {
+	 								return null;
+	 							}
+	 							
+	 			       		return OntologyUtil.listIndividualsToRDFXML(individuals.toArray(new Individual[individuals.size()]));
 		} catch (SQLException sql) {
-			System.out.println("5-Deu erro no DB.getHostList.");
 			System.out.println(sql.getMessage());
- 			throw new ConfigurationException(sql.getMessage());
  		} finally {
 	 			db.closeConnnection(con);
-	 		 	//return lista;
-	 		 	return model;
 	 	}
+		return null;
 
 	}
-	
 
+	/**
+	 * Cria lista de interfaces semânticas com os dados obtidos do banco.
+	 * @throws ConfigurationException 
+	 */
+	public String getInterfaceList(OntResource classResource){
+	
+		Connection con = null;
+
+		String statement = DbQuery.SELECT_INTERFACE;
+		
+		List<Individual> individuals = new ArrayList<Individual>();
+
+		try {
+	 			con = db.getConnection();
+	 			PreparedStatement prepared = con.prepareStatement(statement);
+	 			
+	 			ResultSet reader = prepared.executeQuery();
+	 							reader.first();
+	 							while (!reader.isAfterLast())
+	 			                {
+	 			           		    Individual individual = getModel().createIndividual(reader.getString("uri"), classResource);
+	 			                    individuals.add(individual);
+	 			           		    reader.next();
+	 			                }
+	 							
+	 							if (individuals.isEmpty()) {
+	 								return null;
+	 							}
+	 							
+	 			       		return OntologyUtil.listIndividualsToRDFXML(individuals.toArray(new Individual[individuals.size()]));
+		} catch (SQLException sql) {
+			System.out.println(sql.getMessage());
+ 		} finally {
+	 			db.closeConnnection(con);
+	 	}
+		return null;
+
+	}
+
+	
+	
 	/**
 	 * 
 	 * @param cls

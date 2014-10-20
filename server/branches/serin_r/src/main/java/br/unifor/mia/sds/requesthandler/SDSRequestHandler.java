@@ -16,10 +16,10 @@ import java.util.Properties;
 
 
 
+
 import br.unifor.mia.sds.interfacemanager.AnnotationlessException;
 import br.unifor.mia.sds.interfacemanager.SERINException;
 import br.unifor.mia.sds.interfacemanager.SERINManager;
-import br.unifor.mia.sds.interfacemanager.integrityconstraint.DBHandler;
 import br.unifor.mia.sds.persistence.DB;
 import br.unifor.mia.sds.persistence.DBInsertOperationException;
 import br.unifor.mia.sds.persistence.DBQueryOperationException;
@@ -77,6 +77,19 @@ public class SDSRequestHandler {
 		public String getIndividuals(OntResource classResource, List<Property> embeddedProperties) {
 			return DB.getInstance().getIndividuals(classResource, embeddedProperties);
 		}
+		
+		@Override
+		public String getHosts(OntResource classResource, String interfaceName){
+			//return null;
+			return DB.getInstance().getHostList(classResource, interfaceName);
+		}
+
+		@Override
+		public String getInterfaces(OntResource classResource){
+			//return null;
+			return DB.getInstance().getInterfaceList(classResource);
+		}
+
 	};
 	
 	/**
@@ -107,47 +120,30 @@ public class SDSRequestHandler {
 		return sdsProperty;
 	}
 
-	public String getHostList(String interfaceName) throws ConfigurationException {
+	/**
+	 * 
+	 * @return
+	 * Retorna A lista de interfaces SERIN disponíveis no Servidor.
+	 * Método de teste durante o desenvolvimento.
+	 * Apagar o método anterior, substituir por este, quando concluído.
+	 * @throws ConfigurationException 
+	 */
+	public String getHostList(String interfaceName) throws SDSException, ConfigurationException {
 		try {
 			
-			//List<Host> lista = DB.getInstance().getHostList(interfaceName);
-			//XStream xStream = new XStream(new DomDriver());
-			//xStream.alias("host", Host.class);
-			//xStream.alias("lista", List.class);
-
-			//String xmlString = xStream.toXML(lista);
 			
-			//Cria os dados em padrão RDF
-			// Carrega a interface associada a essa requisição
-			OntModel model = ModelFactory.createOntologyModel();
-			SERINManager iManager = new SERINManager(RequestAnnotations.GET, initialization().get("serin").toString());
+			SERINManager iManager = new SERINManager(RequestAnnotations.GET, initialization().get("serin_serin.owl").toString());
 			try {
 				iManager.checkPermission("Host");
-             	Resource host = iManager.getOntModelOfInterface().getOntClass("http://www.activeontology.com.br/serin.owl#Host");
-             	Property predicado = iManager.getOntModelOfInterface().getProperty("http://www.activeontology.com.br/serin.owl#address");
-        		    Individual individual = iManager.getOntModelOfInterface().createIndividual("http://www.activeontology.com.br/serin.owl/Host/"+"111", host);
-        		    individual.addOntClass(host);
-        		    individual.addComment("Testing comments", "EN");
-        		    model.add(individual, predicado, "teste.com.br");
+				
+				return iManager.getHosts(iManager.lookup("Host"), dbHandler, interfaceName);
+				
 			} catch (AnnotationlessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new SDSException(e.getMessage());
 			} catch (SERINException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new SDSException(e.getMessage());
 			}
 			
-			System.out.println("2-Entrou no método getHostList");
-			//OntModel model = DB.getInstance().getHostList(interfaceName);
-			
-			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			
-			model.write(stream, "RDF/XML");
-
-			String rdfXml = new String(stream.toByteArray());
-			
-		    return rdfXml;
-		
 		} catch(NullPointerException e) {
 			System.out.println(e.getMessage());
 			System.out.println("2-No host attends this SERIN interface. ");
@@ -159,19 +155,33 @@ public class SDSRequestHandler {
 	}
 
 
-	public String getInterfaceList() throws ConfigurationException {
+	public String getInterfaceList() throws ConfigurationException, SDSException {
 		try {
-			ByteArrayOutputStream os = new ByteArrayOutputStream();
-		    initialization().storeToXML(os, "Available SERIN interfaces", "UTF-8");
-		    String xmlString = os.toString();
+			
+			SERINManager iManager = new SERINManager(RequestAnnotations.GET, initialization().get("serin_serin.owl").toString());
+			try {
+				iManager.checkPermission("Interface");
+				
+				return iManager.getInterfaces(iManager.lookup("Interface"), dbHandler);
+				
+			} catch (AnnotationlessException e) {
+				throw new SDSException(e.getMessage());
+			} catch (SERINException e) {
+				throw new SDSException(e.getMessage());
+			}
 
-		    return xmlString;
+			
+			//ByteArrayOutputStream os = new ByteArrayOutputStream();
+		    //initialization().storeToXML(os, "Available SERIN interfaces", "UTF-8");
+		    //String xmlString = os.toString();
+
+		    //return xmlString;
 		} catch(NullPointerException e) {
 			throw new ConfigurationException("No SERIN interface found.");
-		} catch (IOException e) {
+		} //catch (IOException e) {
 			// TODO Auto-generated catch block
-			throw new ConfigurationException("No SERIN interface found.");
-		}
+			//throw new ConfigurationException("No SERIN interface found.");
+		//}
 	}
 
 	public String get_interface_list() throws ConfigurationException {

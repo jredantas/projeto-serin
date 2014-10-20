@@ -1,18 +1,22 @@
 package br.unifor.mia.sds.interfacemanager;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import br.unifor.mia.sds.interfacemanager.integrityconstraint.DBHandler;
 import br.unifor.mia.sds.interfacemanager.integrityconstraint.SDSIntegrityConstraintHandler;
+import br.unifor.mia.sds.interfacemanager.serin.SerinHandler;
+import br.unifor.mia.sds.requesthandler.DBHandler;
 import br.unifor.mia.sds.util.RDFXMLException;
 
+import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.vocabulary.OWL;
 import com.hp.hpl.jena.vocabulary.RDF;
@@ -182,15 +186,21 @@ public class SERINManager {
 		return icHandler.getIndividuals(getOntModelOfInterface(), classResource, properties);
 	}
 	
-	public String getHosts(OntResource classResource, DBHandler dbHandler) throws SERINException {
+	public String getHosts(OntResource classResource, DBHandler dbHandler, String interfaceName) throws SERINException {
 
-		// Localiza todas as propriedade associadas à classe 'className'.
-		List<Property> properties = getPropertiesDomainedBy(classResource.getLocalName());
+		SerinHandler serinHandler = new SerinHandler(dbHandler);
 
-		SDSIntegrityConstraintHandler icHandler = new SDSIntegrityConstraintHandler(dbHandler);
-
-		// Busca instância 'rdfID' e suas instâncias Embedded
-		return icHandler.getIndividuals(getOntModelOfInterface(), classResource, properties);
+		return serinHandler.getHosts(getOntModelOfInterface(),classResource, interfaceName);
+		
 	}
+	
+	public String getInterfaces(OntResource classResource, DBHandler dbHandler) throws SERINException {
+
+		SerinHandler serinHandler = new SerinHandler(dbHandler);
+
+		return serinHandler.getInterfaces(getOntModelOfInterface(),classResource);
+		
+	}
+	
 
 }
