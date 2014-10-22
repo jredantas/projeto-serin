@@ -71,16 +71,15 @@ public final class DB {
 		String searchQuery = "SELECT * WHERE { ?Exercicio a <http://vocab.e.gov.br/2013/09/loa#Exercicio>; <http://vocab.e.gov.br/2013/09/loa#identificador> ?identificador . }";
 		Query query = QueryFactory.create(searchQuery,Syntax.syntaxSPARQL_11);
 		QueryExecution qexec = QueryExecutionFactory.create(query, dataset);
-		qexec.getContext().set(TDB.symUnionDefaultGraph,true);
-		qexec.setTimeout(20000);
+		//qexec.getContext().set(TDB.symUnionDefaultGraph,true);
+		//qexec.setTimeout(20000);
 		try {
-		  //com.hp.hpl.jena.query.ResultSet rs= qexec.execSelect();
-		  model.add(qexec.execConstruct());
-		  //while (rs.hasNext()) {
-			//    QuerySolution solution=rs.nextSolution();
-			//	System.out.println(solution.toString());
-			//    rs.next();
-			//  }
+		  com.hp.hpl.jena.query.ResultSet rs= qexec.execSelect();
+		  while (rs.hasNext()) {
+			    QuerySolution solution = rs.nextSolution();
+				System.out.println(solution.get("codigo"));
+			    rs.next();
+			  }
 			//model.add(rs.getResourceModel());
 		}
 		finally {
