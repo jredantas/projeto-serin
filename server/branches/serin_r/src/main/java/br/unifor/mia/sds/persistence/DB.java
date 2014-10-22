@@ -19,13 +19,20 @@ import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.query.Dataset;
+import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryExecution;
+import com.hp.hpl.jena.query.QueryExecutionFactory;
+import com.hp.hpl.jena.query.QueryFactory;
+import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ReadWrite;
+import com.hp.hpl.jena.query.Syntax;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.tdb.TDB;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.update.UpdateAction;
 import com.hp.hpl.jena.update.UpdateFactory;
@@ -60,8 +67,27 @@ public final class DB {
 		
 		//prefixo alterado quando se le indivíduos(hosts e interfaces) da própria ontologia SERIN
 		model.setNsPrefix("serin", "http://www.activeontology.com.br/serin.owl#");
+		
+		String searchQuery = "SELECT * WHERE { ?Exercicio a <http://vocab.e.gov.br/2013/09/loa#Exercicio>; <http://vocab.e.gov.br/2013/09/loa#identificador> ?identificador . }";
+		Query query = QueryFactory.create(searchQuery,Syntax.syntaxSPARQL_11);
+		QueryExecution qexec = QueryExecutionFactory.create(query, dataset);
+		qexec.getContext().set(TDB.symUnionDefaultGraph,true);
+		qexec.setTimeout(20000);
+		try {
+		  //com.hp.hpl.jena.query.ResultSet rs= qexec.execSelect();
+		  model.add(qexec.execConstruct());
+		  //while (rs.hasNext()) {
+			//    QuerySolution solution=rs.nextSolution();
+			//	System.out.println(solution.toString());
+			//    rs.next();
+			//  }
+			//model.add(rs.getResourceModel());
+		}
+		finally {
+		  qexec.close();
+		}
 
-		model.add(dataset.getDefaultModel());
+		//model.add(dataset.getDefaultModel());
 		
 		dataset.end();
 		
@@ -75,19 +101,20 @@ public final class DB {
 	
 	private DB() throws ConfigurationException {
 		try {
-			this.sdsProperty.load(getClass().getClassLoader().getResourceAsStream(CONFIG_FILE));
-			this.DB_DIRECTORY = sdsProperty.getProperty("dirpath").toString();
-			this.dataset = TDBFactory.createDataset(DB_DIRECTORY);
-			dataset.begin(ReadWrite.WRITE);
+			sdsProperty.load(getClass().getClassLoader().getResourceAsStream(CONFIG_FILE));
+			DB_DIRECTORY = sdsProperty.getProperty("dirpath").toString();
+			dataset = TDBFactory.createDataset(DB_DIRECTORY);
+			//dataset = TDBFactory.createDataset("/home/09959295800/Dropbox/Doutorado/ontologia/loa2014"); //subir um dataset vazio, para investigar estouro de memória
+			dataset.begin(ReadWrite.READ);
 
 			Model model = dataset.getDefaultModel();
 			
 			// Carregar alguns Dados de exemplo 
-			String insertString = FileUtil.getContent("CLINIC_INSERT_DATA.txt");
-			UpdateRequest request = UpdateFactory.create(insertString);
-			UpdateAction.execute(request, model);
+			//String insertString = FileUtil.getContent("CLINIC_INSERT_DATA.txt");
+			//UpdateRequest request = UpdateFactory.create(insertString);
+			//UpdateAction.execute(request, model);
 			
-			dataset.commit();
+			//dataset.commit();
 			
 			dataset.end();
 
@@ -313,6 +340,7 @@ public final class DB {
 	}
 
 	public String getIndividuals(OntResource classResource, List<Property> embeddedProperties) {
+
 
 		List<Individual> individuals = getModel().listIndividuals(classResource).toList();
 		

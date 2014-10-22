@@ -106,7 +106,8 @@ public class SERINManager {
 		OntModel model = getOntModelOfInterface();
 		
 		// Tenta recuperar conceitos da ontologia
-		OntResource resource = model.getOntResource(getNamespace()+"#" + resourceName);
+		//OntResource resource = model.getOntResource(getNamespace()+"#" + resourceName);
+		OntResource resource = model.getOntResource(getNamespace() + resourceName);
 		
 		// Senão localizar é por que esse recurso não está definido na interface SERIN
 		if (resource == null) {
