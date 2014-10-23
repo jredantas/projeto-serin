@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
@@ -26,6 +27,7 @@ import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ReadWrite;
 import com.hp.hpl.jena.query.Syntax;
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
@@ -46,8 +48,6 @@ public final class DB {
 	
 	// Make a TDB-backed dataset
 	private String DB_DIRECTORY;
-	//public static final String SELECT_HOST = "SELECT * FROM host_service WHERE interface_uri = ?";
-	//public static final String SELECT_INTERFACE = "SELECT * FROM interface";
 	
 	private Dataset dataset;
 	
@@ -68,7 +68,7 @@ public final class DB {
 		//prefixo alterado quando se le indivíduos(hosts e interfaces) da própria ontologia SERIN
 		model.setNsPrefix("serin", "http://www.activeontology.com.br/serin.owl#");
 		
-		String searchQuery = "SELECT * WHERE { ?Exercicio a <http://vocab.e.gov.br/2013/09/loa#Exercicio>; <http://vocab.e.gov.br/2013/09/loa#identificador> ?identificador . }";
+		String searchQuery = "SELECT * WHERE { ?Orgao a <http://vocab.e.gov.br/2013/09/loa#Orgao>; <http://vocab.e.gov.br/2013/09/loa#codigo> ?codigo . } LIMIT 5";
 		Query query = QueryFactory.create(searchQuery,Syntax.syntaxSPARQL_11);
 		QueryExecution qexec = QueryExecutionFactory.create(query, dataset);
 		//qexec.getContext().set(TDB.symUnionDefaultGraph,true);
@@ -76,11 +76,25 @@ public final class DB {
 		try {
 		  com.hp.hpl.jena.query.ResultSet rs= qexec.execSelect();
 		  while (rs.hasNext()) {
-			    QuerySolution solution = rs.nextSolution();
-				System.out.println(solution.get("codigo"));
-			    rs.next();
+			    QuerySolution solution = rs.next();
+			    Iterator<String> iterator = solution.varNames();
+			    Property property = null;
+			    Individual individual = null;
+			    Literal literal = null;
+			    while (iterator.hasNext()){
+			    	String varName = iterator.next();
+			    	if (solution.get(varName) instanceof Literal){
+			    		property = model.getProperty("http://www.activeontology.com.br/serin.owl#"+varName);
+			    		literal = solution.getLiteral(varName);
+			    	}
+			    	if (solution.get(varName) instanceof Resource){
+				    	individual = model.createIndividual(solution.getResource(varName).toString(), model.getOntClass("http://vocab.e.gov.br/2013/09/loa#Orgao"));
+			    	}
+			    }
+			    model.add(individual,property,literal);
 			  }
-			//model.add(rs.getResourceModel());
+		} catch (Exception e){
+			e.getMessage();
 		}
 		finally {
 		  qexec.close();
