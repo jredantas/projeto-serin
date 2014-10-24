@@ -17,6 +17,7 @@ import br.unifor.mia.sds.util.RDFXMLException;
 import br.unifor.mia.sds.util.URLTemplate;
 
 import com.hp.hpl.jena.ontology.Individual;
+import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;
 import com.hp.hpl.jena.query.Dataset;
@@ -61,6 +62,27 @@ public final class DB {
 	
 	private OntModel getModel() {
 		
+OntModel model = ModelFactory.createOntologyModel();
+		
+		dataset.begin(ReadWrite.READ);
+		
+		//prefixo alterado quando se le indivíduos(hosts e interfaces) da própria ontologia SERIN
+		model.setNsPrefix("serin", "http://www.activeontology.com.br/serin.owl#");
+
+		//model.add(dataset.getDefaultModel());
+		
+		dataset.end();
+		
+		return model;
+	}
+
+	/**
+	 * Constrói um modelo Jena, com indivíduos lidos em uma base de dados TDB.
+	 */
+	//private OntModel model;// = ModelFactory.createOntologyModel();
+	
+	private OntModel createModel() {
+		
 		OntModel model = ModelFactory.createOntologyModel();
 		
 		dataset.begin(ReadWrite.READ);
@@ -68,7 +90,8 @@ public final class DB {
 		//prefixo alterado quando se le indivíduos(hosts e interfaces) da própria ontologia SERIN
 		model.setNsPrefix("serin", "http://www.activeontology.com.br/serin.owl#");
 		
-		String searchQuery = "SELECT * WHERE { ?Orgao a <http://vocab.e.gov.br/2013/09/loa#Orgao>; <http://vocab.e.gov.br/2013/09/loa#codigo> ?codigo . } LIMIT 5";
+		//String searchQuery = "SELECT * WHERE { ?Orgao a <http://vocab.e.gov.br/2013/09/loa#Orgao>; <http://vocab.e.gov.br/2013/09/loa#codigo> ?codigo . } LIMIT 5";
+		String searchQuery = "SELECT * WHERE { ?Exercicio a <http://vocab.e.gov.br/2013/09/loa#Exercicio>; <http://vocab.e.gov.br/2013/09/loa#identificador> ?identificador . }";
 		Query query = QueryFactory.create(searchQuery,Syntax.syntaxSPARQL_11);
 		QueryExecution qexec = QueryExecutionFactory.create(query, dataset);
 		//qexec.getContext().set(TDB.symUnionDefaultGraph,true);
@@ -77,6 +100,7 @@ public final class DB {
 		  com.hp.hpl.jena.query.ResultSet rs= qexec.execSelect();
 		  while (rs.hasNext()) {
 			    QuerySolution solution = rs.next();
+			    rs.getResourceModel();
 			    Iterator<String> iterator = solution.varNames();
 			    Property property = null;
 			    Individual individual = null;
@@ -86,12 +110,15 @@ public final class DB {
 			    	if (solution.get(varName) instanceof Literal){
 			    		property = model.getProperty("http://www.activeontology.com.br/serin.owl#"+varName);
 			    		literal = solution.getLiteral(varName);
+			    		individual.addProperty(property, literal);
 			    	}
 			    	if (solution.get(varName) instanceof Resource){
-				    	individual = model.createIndividual(solution.getResource(varName).toString(), model.getOntClass("http://vocab.e.gov.br/2013/09/loa#Orgao"));
+			    		OntClass c = model.createClass("http://vocab.e.gov.br/2013/09/loa#Exercicio");
+				    	individual = c.createIndividual(solution.getResource(varName).toString());
 			    	}
 			    }
 			    model.add(individual,property,literal);
+			    //model.commit();
 			  }
 		} catch (Exception e){
 			e.getMessage();
@@ -353,9 +380,9 @@ public final class DB {
 	}
 
 	public String getIndividuals(OntResource classResource, List<Property> embeddedProperties) {
-
-
-		List<Individual> individuals = getModel().listIndividuals(classResource).toList();
+		
+		//List<Individual> individuals = createModel().listIndividuals(classResource).toList();
+		List<Individual> individuals = createModel().listIndividuals(classResource).toList();
 		
 		List<Individual> embeddedIndividuals = new ArrayList<Individual>();
 
