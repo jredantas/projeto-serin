@@ -68,7 +68,7 @@ public class SDSIntegrityConstraintHandler {
 	}
 
 	public String getIndividuals(OntModel modelOfInterface, OntResource classResource,
-			List<Property> properties) {
+			List<Property> properties, String namespace) {
 
 		// Localiza todas as propriedade embedded
 		List<Property> embeddedProperties = new ArrayList<Property>();
@@ -81,7 +81,7 @@ public class SDSIntegrityConstraintHandler {
 			}	
 		}
 	
-		return dbHandler.getIndividuals(classResource, embeddedProperties);
+		return dbHandler.getIndividuals(classResource, properties, embeddedProperties, namespace);
 	}
 
 	/**

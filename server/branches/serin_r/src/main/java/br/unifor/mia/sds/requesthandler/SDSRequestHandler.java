@@ -63,8 +63,8 @@ public class SDSRequestHandler {
 		}
 
 		@Override
-		public String getIndividuals(OntResource classResource, List<Property> embeddedProperties) {
-			return DB.getInstance().getIndividuals(classResource, embeddedProperties);
+		public String getIndividuals(OntResource classResource, List<Property> properties, List<Property> embeddedProperties, String namespace) {
+			return DB.getInstance().getIndividuals(classResource, properties, embeddedProperties, namespace);
 		}
 		
 		@Override

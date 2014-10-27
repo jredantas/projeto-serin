@@ -181,7 +181,7 @@ public class SERINManager {
 		SDSIntegrityConstraintHandler icHandler = new SDSIntegrityConstraintHandler(dbHandler);
 
 		// Busca instância 'rdfID' e suas instâncias Embedded
-		return icHandler.getIndividuals(getOntModelOfInterface(), classResource, properties);
+		return icHandler.getIndividuals(getOntModelOfInterface(), classResource, properties, getNamespace());
 	}
 	
 	public String getHosts(OntResource classResource, DBHandler dbHandler, String interfaceName) throws SERINException {

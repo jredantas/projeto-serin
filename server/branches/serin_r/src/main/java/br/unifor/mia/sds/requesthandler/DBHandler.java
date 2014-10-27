@@ -14,7 +14,7 @@ public interface DBHandler {
 
 	public String getIndividual(String className, String rdfID, List<Property> embeddedProperties);
 
-	public String getIndividuals(OntResource classResource, List<Property> embeddedProperties);
+	public String getIndividuals(OntResource classResource, List<Property> properties, List<Property> embeddedProperties, String namespace);
 	
 	public String getHosts(OntResource classResource, String interfaceName);
 	
