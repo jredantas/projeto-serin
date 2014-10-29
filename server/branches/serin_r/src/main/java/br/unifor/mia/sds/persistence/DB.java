@@ -268,9 +268,13 @@ OntModel model = ModelFactory.createOntologyModel();
 	
 	private DB() throws ConfigurationException {
 		try {
+			System.out.println("Entrou no DB construtor.");
 			sdsProperty.load(getClass().getClassLoader().getResourceAsStream(CONFIG_FILE));
+			System.out.println("Abriu arquivo de propriedades "+CONFIG_FILE);
 			DB_DIRECTORY = sdsProperty.getProperty("dirpath").toString();
+			System.out.println("Carregou variavel DB_DIRECTORY = "+DB_DIRECTORY);
 			dataset = TDBFactory.createDataset(DB_DIRECTORY);
+			System.out.println("Carregou dataset com sucesso");
 			//dataset = TDBFactory.createDataset("/home/09959295800/Dropbox/Doutorado/ontologia/loa2014"); //subir um dataset vazio, para investigar estouro de memória
 			//dataset.begin(ReadWrite.READ);
 
@@ -286,6 +290,8 @@ OntModel model = ModelFactory.createOntologyModel();
 			//dataset.end();
 
 		} catch (Exception e) {
+			System.out.println("Erro no DB contrutor:");
+			System.out.println(e.getMessage());
 			throw new ConfigurationException(e.getMessage());
 		}
 	}
@@ -293,12 +299,15 @@ OntModel model = ModelFactory.createOntologyModel();
 	private static DB db;
 	
 	public static DB getInstance() {
-		
+		System.out.println("Entrou no DB.getInstance() ");
 		if (db == null) {
 			try {
 				db = new DB();
+				System.out.println("Criou objeto de banco.");
 			} catch (ConfigurationException e) {
-			e.printStackTrace();
+				System.out.println("Falhou ao criar objeto de banco.");
+				System.out.println(e.getMessage());
+				e.printStackTrace();
 			}
 			return db;
 		} else {
@@ -506,9 +515,10 @@ OntModel model = ModelFactory.createOntologyModel();
 
 	public String getIndividuals(OntResource classResource, List<Property> properties, List<Property> embeddedProperties, String namespace) {
 		
+		System.out.println("Entrou em DB.getIndividuals");
 		//List<Individual> individuals = createModel().listIndividuals(classResource).toList();
 		List<Individual> individuals = createIndividualsModel(classResource, properties, namespace).listIndividuals(classResource).toList();
-		
+		System.out.println("Retornou createIndividualsModel");
 		List<Individual> embeddedIndividuals = new ArrayList<Individual>();
 
 		if (individuals.isEmpty()) {
