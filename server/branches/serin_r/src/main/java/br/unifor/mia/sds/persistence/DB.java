@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Properties;
 
 import br.unifor.mia.sds.requesthandler.ConfigurationException;
+import br.unifor.mia.sds.util.FileUtil;
 //import br.unifor.mia.sds.util.FileUtil;
 import br.unifor.mia.sds.util.OntologyUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
@@ -38,6 +39,9 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 //import com.hp.hpl.jena.tdb.TDB;
 import com.hp.hpl.jena.tdb.TDBFactory;
+import com.hp.hpl.jena.update.UpdateAction;
+import com.hp.hpl.jena.update.UpdateFactory;
+import com.hp.hpl.jena.update.UpdateRequest;
 //import com.hp.hpl.jena.update.UpdateAction;
 //import com.hp.hpl.jena.update.UpdateFactory;
 //import com.hp.hpl.jena.update.UpdateRequest;
@@ -277,6 +281,7 @@ OntModel model = ModelFactory.createOntologyModel();
 			System.out.println("Carregou dataset com sucesso");
 			//dataset = TDBFactory.createDataset("/home/09959295800/Dropbox/Doutorado/ontologia/loa2014"); //subir um dataset vazio, para investigar estouro de memória
 			//dataset.begin(ReadWrite.READ);
+			//dataset.begin(ReadWrite.WRITE);
 
 			//Model model = dataset.getDefaultModel();
 			
