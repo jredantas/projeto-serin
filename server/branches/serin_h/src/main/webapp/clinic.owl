@@ -21,6 +21,7 @@
         <rdfs:comment>Clinic Ontology</rdfs:comment>
         <owl:imports rdf:resource="http://www.activeontology.com.br/serin.owl#"/>
     </owl:Ontology>
+    
 
 
     <!-- 
@@ -34,14 +35,32 @@
     
 
 
+    <!-- http://www.unifor.br/clinic.owl#appointmentDate -->
+
+    <owl:ObjectProperty rdf:about="http://www.unifor.br/clinic.owl#appointmentDate">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Appointment"/>
+        <rdfs:range rdf:resource="&xsd;datetime"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://www.unifor.br/clinic.owl#attendedBy -->
 
     <owl:ObjectProperty rdf:about="http://www.unifor.br/clinic.owl#attendedBy">
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Appointment"/>
         <rdfs:range rdf:resource="http://www.unifor.br/clinic.owl#Doctor"/>
-        <serin:foreignURI/>
-        <serin:embedded/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#clinicLocation -->
+
+    <owl:ObjectProperty rdf:about="http://www.unifor.br/clinic.owl#clinicLocation">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Appointment"/>
+        <rdfs:range rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
     </owl:ObjectProperty>
     
 
@@ -52,7 +71,16 @@
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Doctor"/>
         <rdfs:range rdf:resource="http://www.unifor.br/clinic.owl#Specialty"/>
-        <serin:embedded/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#patientScheduled -->
+
+    <owl:ObjectProperty rdf:about="http://www.unifor.br/clinic.owl#patientScheduled">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Appointment"/>
+        <rdfs:range rdf:resource="http://www.unifor.br/clinic.owl#Patient"/>
     </owl:ObjectProperty>
     
 
@@ -78,6 +106,16 @@
     
 
 
+    <!-- http://www.unifor.br/clinic.owl#clinicName -->
+
+    <owl:DatatypeProperty rdf:about="http://www.unifor.br/clinic.owl#clinicName">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://www.unifor.br/clinic.owl#description -->
 
     <owl:DatatypeProperty rdf:about="http://www.unifor.br/clinic.owl#description">
@@ -94,18 +132,16 @@
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Doctor"/>
         <rdfs:range rdf:resource="&xsd;string"/>
-        <serin:notNull/>
-        <serin:unique/>
     </owl:DatatypeProperty>
+    
 
-    <!-- http://www.unifor.br/clinic.owl#clinicName -->
 
-    <owl:DatatypeProperty rdf:about="http://www.unifor.br/clinic.owl#clinicName">
+    <!-- http://www.unifor.br/clinic.owl#patientName -->
+
+    <owl:DatatypeProperty rdf:about="http://www.unifor.br/clinic.owl#patientName">
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
+        <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Patient"/>
         <rdfs:range rdf:resource="&xsd;string"/>
-        <serin:notNull/>
-        <serin:unique/>
     </owl:DatatypeProperty>
     
 
@@ -116,7 +152,6 @@
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://www.unifor.br/clinic.owl#Clinic"/>
         <rdfs:range rdf:resource="&xsd;string"/>
-        <serin:id/>
     </owl:DatatypeProperty>
     
 
@@ -132,13 +167,21 @@
     
 
 
+    <!-- http://www.unifor.br/clinic.owl#Appointment -->
+
+    <owl:Class rdf:about="http://www.unifor.br/clinic.owl#Appointment">
+        <serin:put></serin:put>
+        <serin:get></serin:get>
+        <serin:post></serin:post>
+        <serin:delete></serin:delete>
+    </owl:Class>
+    
+
+
     <!-- http://www.unifor.br/clinic.owl#Clinic -->
 
     <owl:Class rdf:about="http://www.unifor.br/clinic.owl#Clinic">
-        <serin:post></serin:post>
         <serin:get></serin:get>
-        <serin:put></serin:put>
-        <serin:delete></serin:delete>
     </owl:Class>
     
 
@@ -147,9 +190,17 @@
 
     <owl:Class rdf:about="http://www.unifor.br/clinic.owl#Doctor">
         <serin:get></serin:get>
-        <serin:post></serin:post>
+    </owl:Class>
+    
+
+
+    <!-- http://www.unifor.br/clinic.owl#Patient -->
+
+    <owl:Class rdf:about="http://www.unifor.br/clinic.owl#Patient">
         <serin:delete></serin:delete>
         <serin:put></serin:put>
+        <serin:post></serin:post>
+        <serin:get></serin:get>
     </owl:Class>
     
 
@@ -157,10 +208,17 @@
     <!-- http://www.unifor.br/clinic.owl#Specialty -->
 
     <owl:Class rdf:about="http://www.unifor.br/clinic.owl#Specialty">
-        <serin:put></serin:put>
         <serin:get></serin:get>
-        <serin:delete></serin:delete>
-        <serin:post></serin:post>
     </owl:Class>
+    
+
+
+    <!-- http://www.w3.org/2001/XMLSchema#datetime -->
+
+    <owl:Class rdf:about="&xsd;datetime"/>
 </rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.5.0) http://owlapi.sourceforge.net -->
 
