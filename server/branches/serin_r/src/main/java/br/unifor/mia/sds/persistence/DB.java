@@ -40,11 +40,15 @@ import com.hp.hpl.jena.vocabulary.RDF;
 
 public final class DB {
 	
+	private static final String CONFIG_FILE = "sds.properties";
 	// Make a TDB-backed dataset
 	//private String DB_DIRECTORY = "MyDatabases/DatasetSDS";
-	private String DB_DIRECTORY = "../app-root/data/clinic";
+	private String DB_DIRECTORY;
 	
-	private Dataset dataset = TDBFactory.createDataset(DB_DIRECTORY);
+	private Dataset dataset;
+	//private String DB_DIRECTORY = "../app-root/data/clinic";
+	
+	//private Dataset dataset = TDBFactory.createDataset(DB_DIRECTORY);
 
 	private Properties sdsProperty = new Properties();
 
@@ -73,6 +77,15 @@ public final class DB {
 	
 	private DB() {
 		try {
+			
+			System.out.println("Entrou no DB construtor.");
+			sdsProperty.load(getClass().getClassLoader().getResourceAsStream(CONFIG_FILE));
+			System.out.println("Abriu arquivo de propriedades "+CONFIG_FILE);
+			DB_DIRECTORY = sdsProperty.getProperty("dirpath").toString();
+			System.out.println("Carregou variavel DB_DIRECTORY = "+DB_DIRECTORY);
+			dataset = TDBFactory.createDataset(DB_DIRECTORY);
+			System.out.println("Carregou dataset com sucesso");
+
 			dataset.begin(ReadWrite.WRITE);
 
 			Model model = dataset.getDefaultModel();

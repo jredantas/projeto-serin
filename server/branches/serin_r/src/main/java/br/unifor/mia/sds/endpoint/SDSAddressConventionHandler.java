@@ -86,6 +86,31 @@ public class SDSAddressConventionHandler {
 	}
 	
 	/**
+	 * Método GET.
+	 * 
+	 * @param iHostName Nome do Host do namespace da interface SERIN. (Ex. www.unifor.br)
+	 * @param interfaceName Nome do arquivo .owl da interface SERIN. (Ex. clinic.owl)
+	 * @return
+	 * Retorna uma interface SERIN em particular.
+	 * 
+	 * @throws IOException
+	 */
+	@GET
+	@Path("{iHostName}/{interfaceName}")
+	public Response get_interface(@PathParam("iHostName") String iHostName,
+			@PathParam("interfaceName") String interfaceName) {
+		
+		String interfaceKey = iHostName + "_" + interfaceName;
+
+		try {
+			return Response.ok(requestHandler.get_interface(interfaceKey)).build();
+		} catch (ConfigurationException e) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+		}
+	}
+
+	
+	/**
 	 * Método GET
 	 * 
 	 * @param iHostName Nome do Host do namespace da interface SERIN. (Ex. www.unifor.br)
