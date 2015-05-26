@@ -174,7 +174,7 @@
     <!-- http://www.activeontology.com.br/serin.owl#Host -->
 
     <owl:Class rdf:about="&serin;Host">
-        <get></get>
+        <serin:get></serin:get>
     </owl:Class>
     
 
@@ -182,7 +182,7 @@
     <!-- http://www.activeontology.com.br/serin.owl#Interface -->
 
     <owl:Class rdf:about="&serin;Interface">
-        <get></get>
+        <serin:get></serin:get>
     </owl:Class>
 </rdf:RDF>
 
