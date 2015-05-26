@@ -3,25 +3,43 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 INSERT DATA
 {
-<http://URI/Specialty/1> rdf:type <http://www.unifor.br/clinic.owl#Specialty>;
-                         cli:description "Cardiology".
 
-<http://URI/Doctor/2> rdf:type <http://www.unifor.br/clinic.owl#Doctor>;
-                      cli:doctorName "Pedro Porfirio";
-                      cli:isSpecializedIn <http://URI/Specialty/1>.
+<http://URI/Specialty/1> rdf:type <http://www.unifor.br/clinic.owl#Specialty>; 
+                         cli:description "Oncology".
 
-<http://URI/Clinic/3> rdf:type <http://www.unifor.br/clinic.owl#Clinic>;
-                      cli:clinicName "CARDIO CLINIC";
-                      cli:attendedBy <http://URI/Doctor/2>;
-                      cli:phoneNumber 34596600.
+<http://URI/Specialty/2> rdf:type <http://www.unifor.br/clinic.owl#Specialty>; cli:description "Surgery".
 
-<http://URI/Clinic/4> rdf:type <http://www.unifor.br/clinic.owl#Clinic>;
-                      cli:clinicName "ENDOCRINOLOGIA CENTRE";
-                      cli:attendedBy <http://URI/Doctor/2>;
-                      cli:phoneNumber 12345678.
-                      
-                      
-<http://URI/Projeto_Software/4> rdf:type <http://ontology.serpro.gov.br/ontologies/2014/3/modeloConceitual.owl#Projeto_Software>.
-        
+<http://URI/Specialty/3> rdf:type <http://www.unifor.br/clinic.owl#Specialty>; cli:description "Obstetrics".
+
+<http://URI/Specialty/4> rdf:type <http://www.unifor.br/clinic.owl#Specialty>; cli:description "Pediatrics".
+
+<http://URI/Specialty/5> rdf:type <http://www.unifor.br/clinic.owl#Specialty>; cli:description "Cardiology".
+
+<http://URI/Specialty/6> rdf:type <http://www.unifor.br/clinic.owl#Specialty>; cli:description "Nephrology".
+
+<http://URI/Specialty/7> rdf:type <http://www.unifor.br/clinic.owl#Specialty>; cli:description "Endocrinology".
+
+<http://URI/Specialty/8> rdf:type <http://www.unifor.br/clinic.owl#Specialty>; cli:description "Rheumatology".
+
+
+<http://URI/Clinic/1> rdf:type <http://www.unifor.br/clinic.owl#Clinic>; 
+                      cli:clinicName " Princeton-Plainsboro Teaching Hospital"; 
+                      cli:address "Prospect Street"; 
+                      cli:phoneNumber "555-0001".
+
+
+<http://URI/Doctor/1> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "Gregory House"; cli:isSpecializedIn <http://URI/Specialty/6>.
+<http://URI/Doctor/2> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "James Wilson"; cli:isSpecializedIn <http://URI/Specialty/1>.
+<http://URI/Doctor/3> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "Lisa Cuddy"; cli:isSpecializedIn <http://URI/Specialty/4>.
+<http://URI/Doctor/4> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "Eric Foreman"; cli:isSpecializedIn <http://URI/Specialty/7>.
+<http://URI/Doctor/5> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "Robert Chase"; cli:isSpecializedIn <http://URI/Specialty/6>.
+<http://URI/Doctor/6> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "Allison Cameron"; cli:isSpecializedIn <http://URI/Specialty/1>.
+<http://URI/Doctor/7> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "Chris Taub"; cli:isSpecializedIn <http://URI/Specialty/4>.
+<http://URI/Doctor/8> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "Lawrence Kutner"; cli:isSpecializedIn <http://URI/Specialty/7>.
+<http://URI/Doctor/9> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "Remy Hadley"; cli:isSpecializedIn <http://URI/Specialty/6>.
+<http://URI/Doctor/10> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "Martha M. Masters"; cli:isSpecializedIn <http://URI/Specialty/1>.
+<http://URI/Doctor/11> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "Jessica Adams"; cli:isSpecializedIn <http://URI/Specialty/4>.
+<http://URI/Doctor/12> rdf:type <http://www.unifor.br/clinic.owl#Doctor>; cli:doctorName "Chi Park"; cli:isSpecializedIn <http://URI/Specialty/7>.
+
 
 }

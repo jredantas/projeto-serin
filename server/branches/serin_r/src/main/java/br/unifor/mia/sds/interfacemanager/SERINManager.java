@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import br.unifor.mia.sds.interfacemanager.integrityconstraint.DBHandler;
 import br.unifor.mia.sds.interfacemanager.integrityconstraint.SDSIntegrityConstraintHandler;
 import br.unifor.mia.sds.interfacemanager.serin.SerinHandler;
-import br.unifor.mia.sds.requesthandler.DBHandler;
 import br.unifor.mia.sds.util.RDFXMLException;
 
 import com.hp.hpl.jena.ontology.OntModel;
@@ -40,7 +40,7 @@ public class SERINManager {
 		// Exemplo: http://www.unifor.br/clinic.owl#
 		List<Statement> listStmt = getOntModelOfInterface().listStatements(null, RDF.type , OWL.Ontology).toList();
 		
-		return listStmt.get(0).getSubject().getURI();// + "#";
+		return listStmt.get(0).getSubject().getURI() + "#";
 	}
 	
 	
@@ -85,9 +85,7 @@ public class SERINManager {
 
 			ontologyMap.put(urlOfInterface, ModelFactory.createOntologyModel());
 
-			//ontologyMap.get(urlOfInterface).read("file:////home/renato/Dados/serin.owl");
 			ontologyMap.get(urlOfInterface).read(urlOfInterface);
-			
 		}
 		
 		return ontologyMap.get(urlOfInterface);
@@ -106,7 +104,6 @@ public class SERINManager {
 		OntModel model = getOntModelOfInterface();
 		
 		// Tenta recuperar conceitos da ontologia
-		//OntResource resource = model.getOntResource(getNamespace()+"#" + resourceName);
 		OntResource resource = model.getOntResource(getNamespace() + resourceName);
 		
 		// Senão localizar é por que esse recurso não está definido na interface SERIN
@@ -181,7 +178,7 @@ public class SERINManager {
 		SDSIntegrityConstraintHandler icHandler = new SDSIntegrityConstraintHandler(dbHandler);
 
 		// Busca instância 'rdfID' e suas instâncias Embedded
-		return icHandler.getIndividuals(getOntModelOfInterface(), classResource, properties, getNamespace());
+		return icHandler.getIndividuals(getOntModelOfInterface(), classResource, properties);
 	}
 	
 	public String getHosts(OntResource classResource, DBHandler dbHandler, String interfaceName) throws SERINException {
@@ -192,6 +189,7 @@ public class SERINManager {
 		
 	}
 	
+
 	public String getInterfaces(OntResource classResource, DBHandler dbHandler) throws SERINException {
 
 		SerinHandler serinHandler = new SerinHandler(dbHandler);
@@ -199,6 +197,5 @@ public class SERINManager {
 		return serinHandler.getInterfaces(getOntModelOfInterface(),classResource);
 		
 	}
-	
 
 }

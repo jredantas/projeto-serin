@@ -1,6 +1,6 @@
 package br.unifor.mia.sds.interfacemanager.serin;
 
-import br.unifor.mia.sds.requesthandler.DBHandler;
+import br.unifor.mia.sds.interfacemanager.integrityconstraint.DBHandler;
 
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntResource;

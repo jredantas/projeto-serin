@@ -12,6 +12,7 @@ import java.util.Properties;
 import br.unifor.mia.sds.interfacemanager.AnnotationlessException;
 import br.unifor.mia.sds.interfacemanager.SERINException;
 import br.unifor.mia.sds.interfacemanager.SERINManager;
+import br.unifor.mia.sds.interfacemanager.integrityconstraint.DBHandler;
 import br.unifor.mia.sds.persistence.DB;
 import br.unifor.mia.sds.persistence.DBInsertOperationException;
 import br.unifor.mia.sds.persistence.DBQueryOperationException;
@@ -67,6 +68,12 @@ public class SDSRequestHandler {
 			return DB.getInstance().getIndividuals(classResource, properties, embeddedProperties, namespace);
 		}
 		
+
+		@Override
+		public String getIndividuals(OntResource classResource, List<Property> embeddedProperties) {
+			return DB.getInstance().getIndividuals(classResource, embeddedProperties);
+		}
+		
 		@Override
 		public String getHosts(OntResource classResource, String interfaceName){
 			//return null;
@@ -109,6 +116,14 @@ public class SDSRequestHandler {
 		return sdsProperty;
 	}
 
+	public String get_interface_list() throws ConfigurationException {
+		try {
+			return FileUtil.getContent(configFile);
+		} catch (IOException e) {
+			throw new ConfigurationException("Arquivo de configuração do servidor SDS não localizado.");
+		}
+	}
+	
 	/**
 	 * 
 	 * @return
@@ -144,6 +159,8 @@ public class SDSRequestHandler {
 	}
 
 
+
+	
 	public String getInterfaceList() throws ConfigurationException, SDSException {
 		try {
 			
@@ -173,13 +190,7 @@ public class SDSRequestHandler {
 		//}
 	}
 
-	public String get_interface_list() throws ConfigurationException {
-		try {
-			return FileUtil.getContent(configFile);
-		} catch (IOException e) {
-			throw new ConfigurationException("Arquivo de configuração do servidor SDS não localizado.");
-		}
-	}
+
 
 	public String get_interface(String interfaceKey) throws ConfigurationException {
 

@@ -3,7 +3,6 @@ package br.unifor.mia.sds.interfacemanager.integrityconstraint;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.unifor.mia.sds.requesthandler.DBHandler;
 import br.unifor.mia.sds.util.OntologyUtil;
 import br.unifor.mia.sds.util.RDFXMLException;
 
@@ -68,7 +67,7 @@ public class SDSIntegrityConstraintHandler {
 	}
 
 	public String getIndividuals(OntModel modelOfInterface, OntResource classResource,
-			List<Property> properties, String namespace) {
+			List<Property> properties) {
 
 		// Localiza todas as propriedade embedded
 		List<Property> embeddedProperties = new ArrayList<Property>();
@@ -81,7 +80,7 @@ public class SDSIntegrityConstraintHandler {
 			}	
 		}
 	
-		return dbHandler.getIndividuals(classResource, properties, embeddedProperties, namespace);
+		return dbHandler.getIndividuals(classResource, embeddedProperties);
 	}
 
 	/**
