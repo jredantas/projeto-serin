@@ -7,6 +7,7 @@ import java.util.Iterator;
 import javax.management.ObjectName;
 
 import com.hp.hpl.jena.graph.Graph;
+import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.query.ReadWrite;
 import com.hp.hpl.jena.rdf.model.Model;
@@ -42,58 +43,72 @@ public class Main {
 		File directory = new File(Main.ONTOLOGY_PATH);
 	    File[] files = directory.listFiles();
 	    Model serin = FileManager.get().loadModel("http://www.activeontology.com.br/serin.owl");
-	    Resource r = serin.getResource("http://www.w3.org/2002/07/owl#AnnotationProperty");
-       	System.out.println("1===============================================");
+	    /*Resource r = serin.getResource("http://www.w3.org/2002/07/owl#AnnotationProperty");
+       	//System.out.println("1===============================================");
        	StmtIterator rdf = r.listProperties();
        	while(rdf.hasNext()) {
        		Statement n = rdf.next();
        		String s = n.toString();
-	       	System.out.println(s);
+	      // 	System.out.println(s);
          }
-       	System.out.println("===============================================");
-       	System.out.println("===============================================");
-       	System.out.println("===============================================");
+       	//System.out.println("===============================================");
+       	//System.out.println("===============================================");
+       	//System.out.println("===============================================");
        	NodeIterator serinNodes = serin.listObjects();
        	while(serinNodes.hasNext()) {
        		RDFNode n = serinNodes.next();
        		String s = n.toString();
-	       	System.out.println(s);
+	      // 	System.out.println(s);
          }
-       	System.out.println("===============================================");
+       	//System.out.println("===============================================");
        	ResIterator serinresources = serin.listSubjects();
        	while(serinresources.hasNext()) {
        		RDFNode n = serinresources.next();
        		String s = n.toString();
 	       	System.out.println(s);
          }
-       	System.out.println("===============================================");
-	    Date d1 = new Date();
+       	//System.out.println("===============================================");
+	   */
+       	Date d1 = new Date();
 	    System.out.println(d1);
 	    //for ( int i = 0; i < files.length; i++ ){
 	    	int i = 0;
 	       	System.out.println(Main.ONTOLOGY_PATH+files[i].getName());
 	       	Model m = FileManager.get().loadModel( Main.ONTOLOGY_PATH+files[i].getName() );
 	       	//OntModel m = ModelFactory.createOntologyModel();
-
+/*
 		    Resource r2 = m.getResource("http://127.0.0.1/ontology/ApothecaryOntology.owl#PhysicianID");
-	       	System.out.println("2===============================================");
+	       	//System.out.println("2===============================================");
 	       	StmtIterator rdf2 = r2.listProperties();
 	       	while(rdf2.hasNext()) {
 	       		Statement n = rdf2.next();
 	       		String s = n.toString();
-		       	System.out.println(s);
+		      // 	System.out.println(s);
 	         }
-	       	System.out.println("===============================================");
-	       	System.out.println("===============================================");
-	       	System.out.println("===============================================");
-
+	       	//System.out.println("===============================================");
+	       	//System.out.println("===============================================");
+	       	//System.out.println("===============================================");
+*/
 	       	
 	       	
 	       	ResIterator resources = m.listSubjects();
+	       	//StmtIterator resources = m.listStatements();
+	       	//NodeIterator resources = m.listObjects();
+	       	int cont = 1;
 	       	while(resources.hasNext()) {
-	       		RDFNode n = resources.next();
-	       		String s = n.toString();
-		       	System.out.println(s);
+	       		//RDFNode n = resources.next();
+	       		//String s = n.toString();
+	       		Resource r3 = m.getResource(resources.nextResource().toString());
+	       		//Resource r3 = resources.nextStatement().getSubject().as();
+		       		System.out.println("Recurso "+cont+":");
+			       	System.out.println(r3.toString());
+		       		cont++;
+		       	//StmtIterator rdf3 = r3.listProperties();
+		       	//while(rdf3.hasNext()) {
+		       	//	Statement n = rdf3.nextStatement();
+			     //  	System.out.println(n.toString());
+		         //}
+	       		System.out.println("--------------------------------");
 		       	
 	         }
 	       	System.out.println("===============================================");
