@@ -10,19 +10,22 @@ import java.util.List;
 
 import com.hp.hpl.jena.ontology.AnnotationProperty;
 import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.Ontology;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.ResIterator;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.util.FileManager;
 import com.hp.hpl.jena.vocabulary.OWL;
+import com.hp.hpl.jena.vocabulary.OWL2;
 import com.hp.hpl.jena.vocabulary.RDF;
 
 public class Main {
 
-	private static final String ONTOLOGY_PATH = "/home/renato/Dropbox/Doutorado/tese/MassaDeDados/hRESTS-TC3/ontology/teste/";
-	//private static final String ONTOLOGY_PATH = "/home/09959295800/Dropbox/Doutorado/tese/MassaDeDados/hRESTS-TC3/ontology/";
+	//private static final String ONTOLOGY_PATH = "/home/renato/Dropbox/Doutorado/tese/MassaDeDados/hRESTS-TC3/ontology/teste/";
+	private static final String ONTOLOGY_PATH = "/home/09959295800/Dropbox/Doutorado/tese/MassaDeDados/hRESTS-TC3/ontology/teste/";
 
 	public static void main(String[] args)  {
 		// TODO Auto-generated method stub
@@ -38,25 +41,26 @@ public class Main {
 		 *  3.3- Sortear anotações para a classe (representadas por números de 1 a 4)
 		 * 4-  
 		 */
-		File directory = new File(Main.ONTOLOGY_PATH);
-	    File[] files = directory.listFiles();
-	    //Model serin = FileManager.get().loadModel("http://www.activeontology.com.br/serin.owl");
+		//Model serin = FileManager.get().loadModel("http://www.activeontology.com.br/serin.owl");
 	    InputStream in = FileManager.get().open("http://www.activeontology.com.br/serin.owl");
 	    if (in == null) {
 			throw new IllegalArgumentException("File: " + in + " not found");
 		}
 	    OntModel serin = ModelFactory.createOntologyModel();
 	    serin.read(in, null);
+	    //serin.setNsPrefix("serin", "http://www.activeontology.com.br/serin.owl#");
 	    ResIterator annotations = serin.listSubjectsWithProperty(RDF.type, OWL.AnnotationProperty);
-       	while(annotations.hasNext()) {
+       	/*while(annotations.hasNext()) {
        		Resource r3 = serin.getResource(annotations.next().toString());
        		System.out.print("Anotação SERIN:");
 	      	System.out.println(r3.toString());
          }
-       	System.out.println("===============================================");
+       	System.out.println("===============================================");*/
 	    	    
        	Date d1 = new Date();
 	    System.out.println(d1);
+	    File directory = new File(Main.ONTOLOGY_PATH);
+	    File[] files = directory.listFiles();
 	    //for ( int i = 0; i < files.length; i++ ){
 	    	int i = 0;
 	       	System.out.println(Main.ONTOLOGY_PATH+files[i].getName());
@@ -68,27 +72,46 @@ public class Main {
 			}
 		    OntModel model = ModelFactory.createOntologyModel();
 		    model.read(in2, null);
-		    	       	
-	       	//model.add(serin);
+		    
+		    //model.setNsPrefix("serin", "http://www.activeontology.com.br/serin.owl#");
+
+		    //model.add(serin);
+		    
+		    //OntModel m2 = ModelFactory.createOntologyModel();
+		    //Ontology ont = m2.createOntology("");
+		    //ont.addImport(m2.createResource("http://www.activeontology.com.br/serin.owl"));
+		    
+		    Ontology ont = model.createOntology();
+		    //ont.addImport(model.createResource("http://www.activeontology.com.br/serin.owl"));	
+
 	       	
-	       	//final AnnotationProperty get = model.createAnnotationProperty( "http://www.activeontology.com.br/serin.owl#get" );
+		    /*OntModel m2 = model.getImportedModel("http://www.activeontology.com.br/serin.owl");
+	       	ResIterator it3 = m2.listSubjectsWithProperty(RDF.type, OWL.Class);
+	       	while(it3.hasNext()) {
+	       		Resource r3 = model.getResource(it3.next().toString());
+		       	System.out.println(r3.toString());
+	       		//r3.addProperty(annotation, ""); 
+	         }
+	       	System.out.println("===============================================");
+		    */
+		    
+		    AnnotationProperty annotation = model.createAnnotationProperty( "http://www.activeontology.com.br/serin.owl#get" );
 
 	       	ResIterator resources = model.listSubjectsWithProperty(RDF.type, OWL.Class);
 	       	int cont = 1;
-	       	List<Statement> includes = null;
 	       	while(resources.hasNext()) {
 	       		Resource r3 = model.getResource(resources.next().toString());
-	       		System.out.print("Recurso "+cont+":");
-		       	System.out.println(r3.toString());
+	       		//System.out.print("Recurso "+cont+":");
+		       	//System.out.println(r3.toString());
 	       		
-	       		//Statement stm = r3.addProperty(arg0, arg1);
-	       		//includes.add(stm);
+	       		//r3.addProperty(annotation, ""); 
 	       		cont++;
 	         }
-	       	System.out.println("===============================================");
-	       	model.add(includes);
-	       	try {
-				FileOutputStream output = new FileOutputStream(Main.ONTOLOGY_PATH+files[i].getName());
+	       	//System.out.println("===============================================");
+	       	String base = "http://www.example.com/ont";
+	    	model.write(System.out, "RDF/XML-ABBREV", base);
+			try {
+	       		FileOutputStream output = new FileOutputStream(Main.ONTOLOGY_PATH+files[i].getName());
 				//model.write(output);
 				output.close();
 			} catch (FileNotFoundException e) {
@@ -98,7 +121,7 @@ public class Main {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-	       	
+
 	       	//String a = m.getResource("http://127.0.0.1/ontology/ApothecaryOntology.owl#Physician_hasID").getNameSpace();
 	       	//System.out.println(a);
 	       	
