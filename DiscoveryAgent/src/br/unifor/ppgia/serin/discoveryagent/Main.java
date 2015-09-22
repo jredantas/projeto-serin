@@ -154,7 +154,7 @@ public class Main {
    	   	        		System.out.println("Key: "+ e.getAttributeValue("key"));
    	   	        		System.out.println("Entry: " + e.getText());
    	   	        		
-   	   	        		//faz a persistência no banco de dados, das URIs de interface listadas no servidor
+   	   	     //faz a persistência no banco de dados, das URIs de interface listadas no servidor
    	   	      	Connection con = null;
    	   	      	String statement = INSERT_HOST;
    	 		try {
