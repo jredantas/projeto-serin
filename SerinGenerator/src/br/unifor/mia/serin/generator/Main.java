@@ -5,9 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import br.unifor.mia.serin.util.Db;
 
 import com.hp.hpl.jena.ontology.AnnotationProperty;
 import com.hp.hpl.jena.ontology.OntModel;
@@ -24,6 +29,11 @@ public class Main {
 
 	//private static final String ONTOLOGY_PATH = "/home/renato/Dropbox/Doutorado/tese/MassaDeDados/hRESTS-TC3/ontology/teste/";
 	private static final String ONTOLOGY_PATH = "/home/09959295800/Dropbox/Doutorado/tese/MassaDeDados/hRESTS-TC3/ontology/teste/";
+	
+	//private static final String INSERT_HOST = "INSERT INTO host_service (host_address,interface_uri, host_protocol) VALUES (?,?,?)";
+	private static final String INSERT_SERVICE = "INSERT INTO interface (chave,uri) VALUES (?,?);";
+	
+
 
 	public static void main(String[] args)  {
 		System.out.println("SERIN Generator started...");
@@ -38,8 +48,9 @@ public class Main {
 		 *  3.3- Sortear anotações para a classe (representadas por números de 1 a 4)
 		 * 4-  
 		 */
-		//Model serin = FileManager.get().loadModel("http://www.activeontology.com.br/serin.owl");
-	    InputStream in = FileManager.get().open("http://www.activeontology.com.br/serin.owl");
+
+		//InputStream in = FileManager.get().open("http://www.activeontology.com.br/serin.owl");
+	    InputStream in = FileManager.get().open("file:///home/09959295800/Dropbox/Doutorado/ontologia/serin.owl");
 	    if (in == null) {
 			throw new IllegalArgumentException("File: " + in + " not found");
 		}
@@ -53,18 +64,6 @@ public class Main {
 	        annotations.add(annotation);
 	      }
 	    }
-       	/*while(annotations.iterator().hasNext()) {
-       		AnnotationProperty a = annotations.iterator().next();
-       		Resource r3 = serin.getResource(a.getURI());
-       		System.out.print("Anotação SERIN:");
-	      	System.out.println(r3.toString());
-         }*/
-	    //for (int i=0;i<annotations.size();i++){
-	    //	System.out.print("Anotação SERIN:");
-	    //  	System.out.println(annotations.get(i).toString());
-	    //}
-	    
-       	//System.out.println("===============================================");
 	    	    
        	Date d1 = new Date();
 	    System.out.println(d1);
@@ -72,7 +71,6 @@ public class Main {
 	    File[] files = directory.listFiles();
        	int cont = 1;
 	    for ( int i = 0; i < files.length; i++ ){
-	    	//int i = 0;
 	       	System.out.println(Main.ONTOLOGY_PATH+files[i].getName());
 	       	
 	       	InputStream in2 = FileManager.get().open(Main.ONTOLOGY_PATH+files[i].getName());
@@ -84,11 +82,8 @@ public class Main {
 		    
 		    ExtendedIterator<Ontology> ontol = model.listOntologies();
 	       	while(ontol.hasNext()) {
-	       		//Model baseModel = model.getBaseModel();
 	       		Ontology ont = model.getOntology(ontol.next().toString());
-	       		//Resource r3 = model.getResource(ontol.next().toString());
 	       		if (ont.getLocalName().equals(files[i].getName())){
-			       	//System.out.println(baseModel.get);
 		       		System.out.print("Ontology "+cont+":");
 			       	System.out.println(ont.getURI());
 				    ont.addImport(model.createResource("http://www.activeontology.com.br/serin.owl"));	
@@ -97,11 +92,8 @@ public class Main {
 	       		}
 	         }
 
-	       	System.out.println("===============================================");
 		    model.setNsPrefix("serin", "http://www.activeontology.com.br/serin.owl#");
-
-		    //Ontology ont = model.getOntology(model.listOntologies());
-		    //ontol.addImport(model.createResource("http://www.activeontology.com.br/serin.owl"));	
+		    System.out.println("passo do prefixo");
 
 		    AnnotationProperty annotationGet = serin.getAnnotationProperty("http://www.activeontology.com.br/serin.owl#get" );
 		    AnnotationProperty annotationPut = serin.getAnnotationProperty("http://www.activeontology.com.br/serin.owl#put" );
@@ -109,19 +101,17 @@ public class Main {
 		    AnnotationProperty annotationDelete = serin.getAnnotationProperty("http://www.activeontology.com.br/serin.owl#delete" );
 
 	       	ResIterator resources = model.listSubjectsWithProperty(RDF.type, OWL.Class);
-	       	//int cont = 1;
+		    System.out.println("passo da lista de sujeitos");
 	       	while(resources.hasNext()) {
 	       		Resource r3 = model.getResource(resources.next().toString());
-	       		//System.out.print("Recurso "+cont+":");
-		       	//System.out.println(r3.toString());
+			    System.out.println(r3.toString());
 	       		r3.addProperty(annotationGet, "");
 	       		r3.addProperty(annotationPut, "");
 	       		r3.addProperty(annotationPost, "");
 	       		r3.addProperty(annotationDelete, "");
-	       		//cont++;
 	         }
-	       	//System.out.println("===============================================");
 	       	String base = "http://www.example.com/ont";
+		    System.out.println("passo da base");
 	    	model.write(System.out, "RDF/XML-ABBREV", base);
 			try {
 	       		FileOutputStream output = new FileOutputStream(Main.ONTOLOGY_PATH+files[i].getName());
@@ -132,12 +122,71 @@ public class Main {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+	       	System.out.println("===============================================");
+
 
         }
 	    Date d2 = new Date();
 	    System.out.println(d2);
 	    System.out.println("Total execution time: "+(d2.getTime()-d1.getTime())+" miliseconds.");
         System.out.println("End!!!");
+        
+        /**
+         * Segunda parte: armazenar as URIs das ontologias em banco de dados
+         *                para leitura pelo serviço de busca
+         */
+        
+       	d1 = new Date();
+	    System.out.println(d1);
+	    directory = new File(Main.ONTOLOGY_PATH);
+	    files = directory.listFiles();
+       	cont = 1;
+	    for ( int i = 0; i < files.length; i++ ){
+	       	System.out.println(Main.ONTOLOGY_PATH+files[i].getName());
+	       	
+	       	InputStream in2 = FileManager.get().open(Main.ONTOLOGY_PATH+files[i].getName());
+		    if (in2 == null) {
+				throw new IllegalArgumentException("File: " + in2 + " not found");
+			}
+		    OntModel model = ModelFactory.createOntologyModel();
+		    model.read(in2, null);
+		    
+		    ExtendedIterator<Ontology> ontol = model.listOntologies();
+	       	while(ontol.hasNext()) {
+	       		Ontology ont = model.getOntology(ontol.next().toString());
+	       		if (ont.getLocalName().equals(files[i].getName())){
+		       		System.out.print("Ontology "+cont+":");
+			       	System.out.println(ont.getURI());
+				    ont.addImport(model.createResource("http://www.activeontology.com.br/serin.owl"));	
+		       		cont++;
+		 	   	     //faz a persistência no banco de dados, das URIs de interface listadas no servidor
+		   	      	Connection con = null;
+		   	      	String statement = INSERT_SERVICE;
+		 		try {
+		 			con = Db.getConnection();
+		 			PreparedStatement prepared = con.prepareStatement(statement);
+		 			prepared.setString(1, "example.com_"+ont.getLocalName());
+		 			prepared.setString(2, ont.getURI());
+		 			prepared.execute();
 
+		 		} catch (SQLException sql) {
+		 		System.out.println(sql.getMessage());
+		 		} finally {
+		 			Db.closeConnnection(con);
+		 		}
+		       		break;
+	       		}
+	         }
+	    
+
+	    }
+	    d2 = new Date();
+	    System.out.println(d2);
+	    System.out.println("Total execution time: "+(d2.getTime()-d1.getTime())+" miliseconds.");
+        System.out.println("End!!!");
+
+
+        
+        
 	}
 }
