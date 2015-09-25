@@ -11,10 +11,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ListIterator;
 
 import br.unifor.mia.serin.util.Db;
 
 import com.hp.hpl.jena.ontology.AnnotationProperty;
+import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.Ontology;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
@@ -70,6 +72,8 @@ public class Main {
 	    File directory = new File(Main.ONTOLOGY_PATH);
 	    File[] files = directory.listFiles();
        	int cont = 1;
+       	int interfaceCount = 0;
+       	int classCount = 0;
 	    for ( int i = 0; i < files.length; i++ ){
 	       	System.out.println(Main.ONTOLOGY_PATH+files[i].getName());
 	       	
@@ -100,19 +104,43 @@ public class Main {
 		    AnnotationProperty annotationPost = serin.getAnnotationProperty("http://www.activeontology.com.br/serin.owl#post" );
 		    AnnotationProperty annotationDelete = serin.getAnnotationProperty("http://www.activeontology.com.br/serin.owl#delete" );
 
-	       	ResIterator resources = model.listSubjectsWithProperty(RDF.type, OWL.Class);
-		    System.out.println("passo da lista de sujeitos");
-	       	while(resources.hasNext()) {
-	       		Resource r3 = model.getResource(resources.next().toString());
-			    System.out.println(r3.toString());
-	       		r3.addProperty(annotationGet, "");
-	       		r3.addProperty(annotationPut, "");
-	       		r3.addProperty(annotationPost, "");
-	       		r3.addProperty(annotationDelete, "");
+	       	ExtendedIterator<OntClass> cl = model.listNamedClasses();
+	       	List<Resource> resources = new ArrayList<Resource>(); 
+	       	while(cl.hasNext()) {
+	       		Resource r3 = model.getResource(cl.next().getURI());
+	       		if (!(r3.getLocalName()==null)){
+				    System.out.println("Classe: "+r3.toString());
+				    System.out.println("Classe local name: "+r3.getLocalName());
+				    System.out.println("Classe URI: "+r3.getURI());
+				    resources.add(r3);
+	       		}
+	         }
+
+		    
+		    //ResIterator resources = model.listSubjectsWithProperty(RDF.type, OWL.Class);
+		    ListIterator listResources = resources.listIterator();
+		    System.out.println("===============passo da lista de sujeitos===================");
+	       	while(listResources.hasNext()) {
+	       		//Resource r3 = model.getResource(resources.next().toString());
+	       		Resource r3 = model.getResource(listResources.next().toString());
+	       		if (!(r3.getClass().getSimpleName()==null)){
+		       		classCount++;
+				    System.out.println(r3.toString());
+				    System.out.println("R3 local name: "+r3.getLocalName());
+				    System.out.println("R3 URI: "+r3.getURI());
+		       		r3.addProperty(annotationGet, "");
+		       		interfaceCount++;
+		       		r3.addProperty(annotationPut, "");
+		       		interfaceCount++;
+		       		r3.addProperty(annotationPost, "");
+		       		interfaceCount++;
+		       		r3.addProperty(annotationDelete, "");
+		       		interfaceCount++;
+	       		}
 	         }
 	       	String base = "http://www.example.com/ont";
-		    System.out.println("passo da base");
-	    	model.write(System.out, "RDF/XML-ABBREV", base);
+		    //System.out.println("passo da base");
+	    	//model.write(System.out, "RDF/XML-ABBREV", base);
 			try {
 	       		FileOutputStream output = new FileOutputStream(Main.ONTOLOGY_PATH+files[i].getName());
 				model.write(output);
@@ -142,7 +170,7 @@ public class Main {
 	    files = directory.listFiles();
        	cont = 1;
 	    for ( int i = 0; i < files.length; i++ ){
-	       	System.out.println(Main.ONTOLOGY_PATH+files[i].getName());
+	       	//System.out.println(Main.ONTOLOGY_PATH+files[i].getName());
 	       	
 	       	InputStream in2 = FileManager.get().open(Main.ONTOLOGY_PATH+files[i].getName());
 		    if (in2 == null) {
@@ -155,8 +183,8 @@ public class Main {
 	       	while(ontol.hasNext()) {
 	       		Ontology ont = model.getOntology(ontol.next().toString());
 	       		if (ont.getLocalName().equals(files[i].getName())){
-		       		System.out.print("Ontology "+cont+":");
-			       	System.out.println(ont.getURI());
+		       		//System.out.print("Ontology "+cont+":");
+			       	//System.out.println(ont.getURI());
 				    ont.addImport(model.createResource("http://www.activeontology.com.br/serin.owl"));	
 		       		cont++;
 		 	   	     //faz a persistência no banco de dados, das URIs de interface listadas no servidor
@@ -183,7 +211,10 @@ public class Main {
 	    d2 = new Date();
 	    System.out.println(d2);
 	    System.out.println("Total execution time: "+(d2.getTime()-d1.getTime())+" miliseconds.");
+	    System.out.println("Number of annotated classes: "+classCount);
+	    System.out.println("Number of generated interfaces: "+interfaceCount);
         System.out.println("End!!!");
+        
 
 
         
