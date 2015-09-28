@@ -29,12 +29,12 @@ import com.hp.hpl.jena.vocabulary.RDF;
 
 public class Main {
 
-	//private static final String ONTOLOGY_PATH = "/home/renato/Dropbox/Doutorado/tese/MassaDeDados/hRESTS-TC3/ontology/teste/";
-	private static final String ONTOLOGY_PATH = "/home/09959295800/Dropbox/Doutorado/tese/MassaDeDados/hRESTS-TC3/ontology/teste/";
+	private static final String ONTOLOGY_PATH = "/home/renato/Dropbox/Doutorado/tese/MassaDeDados/hRESTS-TC3/ontology/teste/";
+	//private static final String ONTOLOGY_PATH = "/home/09959295800/Dropbox/Doutorado/tese/MassaDeDados/hRESTS-TC3/ontology/teste/";
 	
 	//private static final String INSERT_HOST = "INSERT INTO host_service (host_address,interface_uri, host_protocol) VALUES (?,?,?)";
 	private static final String INSERT_SERVICE = "INSERT INTO interface (chave,uri) VALUES (?,?);";
-	
+	private static final String INSERT_REQUEST = "INSERT INTO request (url) VALUES (?);";
 
 
 	public static void main(String[] args)  {
@@ -52,7 +52,8 @@ public class Main {
 		 */
 
 		//InputStream in = FileManager.get().open("http://www.activeontology.com.br/serin.owl");
-	    InputStream in = FileManager.get().open("file:///home/09959295800/Dropbox/Doutorado/ontologia/serin.owl");
+		InputStream in = FileManager.get().open("http://opendataserin-unifor.rhcloud.com/serin/serin.owl");
+	    //InputStream in = FileManager.get().open("file:///home/09959295800/Dropbox/Doutorado/ontologia/serin.owl");
 	    if (in == null) {
 			throw new IllegalArgumentException("File: " + in + " not found");
 		}
@@ -136,6 +137,26 @@ public class Main {
 		       		interfaceCount++;
 		       		r3.addProperty(annotationDelete, "");
 		       		interfaceCount++;
+
+		 	   	     //faz a persistência no banco de dados, das URIs de interface listadas no servidor
+		   	      	Connection con = null;
+		   	      	String statement = INSERT_REQUEST;
+		 		try {
+		 			con = Db.getConnection();
+		 			PreparedStatement prepared = con.prepareStatement(statement);
+		 			prepared.setString(1, "http://localhost:8080/Serin2/example.com/"+files[i].getName()+"/"+r3.getLocalName());
+		 			//TODO: falta incluir a classe
+		 			//http://localhost:8080/Serin2/www.unifor.br/clinic.owl
+		 			prepared.execute();
+
+		 		} catch (SQLException sql) {
+		 		System.out.println(sql.getMessage());
+		 		} finally {
+		 			Db.closeConnnection(con);
+		 		}
+
+	       		
+	       		
 	       		}
 	         }
 	       	String base = "http://www.example.com/ont";
