@@ -8,10 +8,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 //import javax.xml.transform.Result;
+
+
 
 
 
@@ -51,6 +54,9 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		
 		System.out.println("Discovery agent started...");
+       	Date d1 = new Date();
+	    System.out.println(d1);
+
 		/**
 		 * Variável para criar query de inserção dos registros na base de dados
 		 */
@@ -62,10 +68,10 @@ public class Main {
 		 * 
 		 */
 		List<GoogleResults.Result> listResults = new ArrayList<GoogleResults.Result>();
-	    for(int i = 0; i < 1; i++) {
+	    for(int i = 0; i < 20; i++) {
 	    	try{
 	  	      String address = "http://ajax.googleapis.com/ajax/services/search/web?v=1.0&start=" + i * 4 + "&q=";
-		      String query = "gov.br";
+		      String query = "dados gov.br";
 		      String charset = "UTF-8";
 
 		      URL url = new URL(address + URLEncoder.encode(query, charset));
@@ -123,13 +129,17 @@ public class Main {
 		//i = 0;
 		
 	    //while (iterator.hasNext()){
+		int countFound = 0;
+		int countTotal = 0;
 		for (Iterator<GoogleResults.Result> iterator = listResults.iterator(); iterator.hasNext(); ) {
 			GoogleResults.Result elemento = iterator.next();
+			countTotal++;
 
 	    	//SerinClient serinClient = new SerinClient(listResults.get(i).getUrl().split(":")[0]+"://"+listResults.get(i).getVisibleUrl()+"/Serin3");
 			SerinClient serinClient = new SerinClient(elemento.getUrl().split(":")[0]+"://"+elemento.getVisibleUrl()+"/Serin2");
 			url = serinClient.getUrlHost()+"/getInterfaceList";
-		    System.out.println(url.toString());
+		    //System.out.println(url.toString());
+		    System.out.println(elemento.getUrl());
 
 	    	try {
 		    
@@ -142,56 +152,65 @@ public class Main {
 		    if (response.getResponseStatus().equals(Status.OK)) {
 		    	
 		    	//faz a leitura do XML chamado pela URL de descoberta em cada servidor
-		    	String rdfXml = (String) response.getEntity();
-		    	System.out.println(rdfXml);
+		    	//String rdfXml = (String) response.getEntity();
+		    	//System.out.println(rdfXml);
+		    	countFound++;
 		    	Document doc = null;
 		    	SAXBuilder builder = new SAXBuilder();
 
 		    		doc = builder.build(url);
    	   	        	Element indice = doc.getRootElement();
-   	   	        	List<Element> lista = indice.getChildren("entry");
+   	   	        	//List<Element> lista = indice.getChildren("serin:Interface");
+   	   	        	List<Element> lista = indice.getChildren();
    	   	        	for (Element e: lista) {
-   	   	        		System.out.println("Key: "+ e.getAttributeValue("key"));
-   	   	        		System.out.println("Entry: " + e.getText());
+   	   	        		//System.out.println("Key: "+ e.getAttributeValue("key"));
+   	   	        		//System.out.println("Entry: " + e.getText());
    	   	        		
-   	   	     //faz a persistência no banco de dados, das URIs de interface listadas no servidor
-   	   	      	Connection con = null;
-   	   	      	String statement = INSERT_HOST;
-   	 		try {
-   	 			con = Db.getConnection();
-   	 			PreparedStatement prepared = con.prepareStatement(statement);
-   	 			prepared.setString(1, elemento.getVisibleUrl());
-   	 			prepared.setString(2, e.getText());
-   	 			prepared.setString(3, elemento.getUrl().split(":")[0]);
-   	 			prepared.execute();
+   	   	        		//faz a persistência no banco de dados, das URIs de interface listadas no servidor
+   	   	        		Connection con = null;
+   	   	        		String statement = INSERT_HOST;
+   	        			try {
+   	        				con = Db.getConnection();
+   	        				PreparedStatement prepared = con.prepareStatement(statement);
+   	        				prepared.setString(1, elemento.getVisibleUrl());
+   	        				prepared.setString(2, e.getText());
+   	        				prepared.setString(3, elemento.getUrl().split(":")[0]);
+   	        				prepared.execute();
 
-   	 		} catch (SQLException sql) {
-   	 		System.out.println(sql.getMessage());
-   	 		} finally {
-   	 			Db.closeConnnection(con);
-   	 		}
+   	        			} catch (SQLException sql) {
+   	        				//System.out.println(sql.getMessage());
+   	        			} finally {
+   	        				Db.closeConnnection(con);
+   	        			}
 
 
    	   	        	}
 		    }
-		    else System.out.println(response.getResponseStatus());
+		    //else System.out.println(response.getResponseStatus());
    	   	     	
    	          	} catch (SSLPeerUnverifiedException e) {
-   	          		System.out.println(Status.FORBIDDEN);		      
+   	          		//System.out.println(Status.FORBIDDEN);		      
 		    	}	catch (IOException io) {
-   	        		System.out.println(io.getMessage());
+   	        		//System.out.println(io.getMessage());
    	          	} catch (JDOMException jdomex) {
-   	        	  	System.out.println(jdomex.getMessage());
+   	        	  	//System.out.println(jdomex.getMessage());
    	          	} catch (Exception e) {
 		            e.printStackTrace();		      
    	          	}
    	     	
-		    System.out.println("==================================================================");
+		    //System.out.println("==================================================================");
 		    //iterator.next();
 		    //i++;
     	}
 		
-		System.out.println("Discovery agent finished!");
+	    Date d2 = new Date();
+	    System.out.println(d2);
+	    System.out.println("Total execution time: "+(d2.getTime()-d1.getTime())+" miliseconds.");
+	    
+	    System.out.println("Total tested hosts "+countTotal);
+	    System.out.println("Total found hosts "+countFound);
+
+	    System.out.println("Discovery agent finished!");
 
 	}
 
