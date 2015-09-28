@@ -10,7 +10,7 @@ public class Db {
 	public static Connection getConnection() throws SQLException {
 		Connection con = null;
 	    String username = "root";     
-	    String password = ""; 
+	    String password = "fortal18"; 
 		con = DriverManager.getConnection("jdbc:mysql://localhost:3306/serin_discovery",username,password);
 
 		return con;
